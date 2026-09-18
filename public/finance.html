@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="/mg-logo.svg">
+<style>
+  body { font-family: Arial, sans-serif; max-width: 1300px; margin: 30px auto; padding: 0 16px; background: #f5f6f8; }
+  h1 { font-size: 20px; margin: 0; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  #logoutBtn {
+    padding: 0.6em 1.4em;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: #c0392b;
+    background: transparent;
+    transition: all 500ms;
+    font-size: 12px;
+    position: relative;
+    overflow: hidden;
+    outline: 2px solid #c0392b;
+  }
+  #logoutBtn:hover {
+    color: #ffffff;
+    transform: scale(1.06);
+    outline: 2px solid #e26a5c;
+    box-shadow: 4px 5px 17px -4px #8e2c20;
+  }
+  #logoutBtn::before {
+    content: "";
+    position: absolute;
+    left: -50px;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background-color: #c0392b;
+    transform: skewX(45deg);
+    z-index: -1;
+    transition: width 500ms;
+  }
+  #logoutBtn:hover::before {
+    width: 250%;
+  }
+  .export-bar { background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; }
+
+  .date-dropdown { position: relative; }
+  .date-dropdown__trigger {
+    padding: 7px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .date-dropdown__trigger:hover { border-color: #1a73e8; }
+  .date-dropdown__trigger.active { border-color: #1a73e8; color: #1a73e8; }
+  .date-dropdown__panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 12px;
+    z-index: 20;
+    min-width: 260px;
+  }
+  .date-dropdown__panel.open { display: block; }
+  .date-dropdown__presets {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  .date-dropdown__preset {
+    text-align: left;
+    padding: 6px 8px;
+    border: none;
+    background: none;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+  }
+  .date-dropdown__preset:hover { background: #f0f4fa; color: #1a73e8; }
+  .date-dropdown__custom { display: flex; flex-direction: column; gap: 6px; }
+  .date-dropdown__custom label { font-size: 12px; color: #666; display: flex; justify-content: space-between; align-items: center; }
+  .date-dropdown__custom input[type="date"] { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+  .date-dropdown__clear { margin-top: 8px; font-size: 12px; color: #c0392b; background: none; border: none; cursor: pointer; padding: 4px 0; text-align: left; }
+
+  .export-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    min-width: 140px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 999px;
+    background: #1a7e2e;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+  }
+  .export-toggle:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+  .export-toggle__layer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s ease;
+  }
+  .export-toggle[data-status="loading"] .export-toggle__layer[data-layer="idle"],
+  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="idle"] {
+    display: none;
+  }
+  .export-toggle__layer[data-layer="loading"],
+  .export-toggle__layer[data-layer="done"] {
+    display: none;
+  }
+  .export-toggle[data-status="loading"] .export-toggle__layer[data-layer="loading"] {
+    display: inline-flex;
+  }
+  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="done"] {
+    display: inline-flex;
+  }
+  .export-toggle__spinner {
+    width: 16px;
+    height: 16px;
+    animation: spin 0.7s linear infinite;
+  }
+  .export-toggle__spinner circle { stroke: rgba(255,255,255,0.35); }
+  .export-toggle__spinner path { stroke: #fff; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .export-toggle__check {
+    width: 16px;
+    height: 16px;
+  }
+  #exportMsg { font-size: 12px; color: #c0392b; }
+  table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
+  th { background: #fafafa; }
+  tr.review-flag { background: #fff8e6; }
+  .status-Received { color: #b8860b; font-weight: bold; }
+  .status-Verified { color: #1a73e8; font-weight: bold; }
+  .status-Resolved { color: #1a7e2e; font-weight: bold; }
+  .review-badge { display: inline-block; background: #e67e22; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; margin-bottom: 4px; }
+  .extracted { font-size: 12px; color: #444; line-height: 1.5; }
+  .extracted b { color: #111; }
+  button.action-btn { display: block; width: 100%; padding: 8px 14px; margin: 3px 0; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; color: #fff; }
+  .btn-resolve { background: #1a7e2e; }
+  .btn-received { background: #999; }
+
+  .btn-verify {
+    background: #1a73e8;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  .btn-verify:hover {
+    box-shadow: 0 2px 10px rgba(26, 115, 232, 0.4);
+  }
+  .btn-verify::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  }
+  .btn-verify:hover::after {
+    transform: translateX(100%);
+    transition: transform 0.7s ease;
+  }
+  a.screenshot-link { color: #1a73e8; }
+  #empty { padding: 20px; text-align: center; color: #777; }
+
+  .ui-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  .ui-checkbox__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .ui-checkbox__box {
+    display: grid;
+    place-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  }
+  .ui-checkbox__input:focus-visible + .ui-checkbox__box {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgb(26 115 232 / 0.35);
+  }
+  .ui-checkbox__input:checked + .ui-checkbox__box {
+    border-color: #1a73e8;
+    background: #1a73e8;
+  }
+  .ui-checkbox__icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    transform: scale(0.8);
+  }
+  .ui-checkbox__input:checked ~ .ui-checkbox__box .ui-checkbox__icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>
+</head>
+<body>
+  <div class="header-row">
+    <h1>Finance Dashboard</h1>
+    <button id="logoutBtn">Log out</button>
+  </div>
+
+  <div class="export-bar">
+    <div class="date-dropdown">
+      <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
+        <span id="dateDropdownLabel">Select date range</span> ▾
+      </button>
+      <div class="date-dropdown__panel" id="dateDropdownPanel">
+        <div class="date-dropdown__presets">
+          <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
+          <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
+          <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
+          <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
+          <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
+          <button type="button" class="date-dropdown__preset" data-preset="mtd">Month to date</button>
+          <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+        </div>
+        <div class="date-dropdown__custom">
+          <label>From <input type="date" id="startDate"></label>
+          <label>To <input type="date" id="endDate"></label>
+        </div>
+        <button type="button" class="date-dropdown__clear" id="dateDropdownClear">Clear</button>
+      </div>
+    </div>
+    <span style="flex: 1;"></span>
+    <button type="button" class="export-toggle" data-status="idle" id="exportBtn" disabled>
+      <span class="export-toggle__layer" data-layer="idle">Export</span>
+      <span class="export-toggle__layer" data-layer="loading">
+        <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+          <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+          <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
+        </svg>
+      </span>
+      <span class="export-toggle__layer" data-layer="done">
+        <svg class="export-toggle__check" viewBox="0 0 16 16">
+          <path fill="currentColor" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+        </svg>
+        Exported
+      </span>
+    </button>
+    <span id="exportMsg"></span>
+  </div>
+
+  <table id="table">
+    <thead>
+      <tr>
+        <th>
+          <label class="ui-checkbox">
+            <input type="checkbox" id="selectAll" class="ui-checkbox__input">
+            <span class="ui-checkbox__box">
+              <svg class="ui-checkbox__icon" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </label>
+        </th>
+        <th>ID</th>
+        <th>Dealer (logged in)</th>
+        <th>PBO Ref</th>
+        <th>Extracted from Screenshot</th>
+        <th>Notes</th>
+        <th>Screenshot</th>
+        <th>Status</th>
+        <th>Submitted</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty" style="display:none;">No submissions yet.</div>
+
+<script>
+  let allRows = [];
+
+  document.title = 'Dashboard';
+
+  if (!sessionStorage.getItem('financeAuthHeader')) {
+    window.location.href = '/login.html';
+  }
+
+  function authHeaders(extra = {}) {
+    const stored = sessionStorage.getItem('financeAuthHeader');
+    return stored ? { 'Authorization': stored, ...extra } : extra;
+  }
+
+  async function loadSubmissions() {
+    const previouslyChecked = new Set(
+      Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
+    );
+    const res = await fetch('/api/submissions', { headers: authHeaders() });
+    const data = await res.json();
+    allRows = data;
+    const tbody = document.getElementById('tbody');
+    const empty = document.getElementById('empty');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      if (row.needs_review) tr.className = 'review-flag';
+
+      const reviewBadge = row.needs_review
+        ? `<div class="review-badge">⚠ NEEDS REVIEW</div><div style="font-size:11px;color:#a05a00;">${escapeHtml(row.review_reason || '')}</div>`
+        : '';
+
+      tr.innerHTML = `
+        <td>
+          <label class="ui-checkbox">
+            <input type="checkbox" class="rowCheck ui-checkbox__input" data-id="${row.id}" ${previouslyChecked.has(String(row.id)) ? 'checked' : ''}>
+            <span class="ui-checkbox__box">
+              <svg class="ui-checkbox__icon" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </label>
+        </td>
+        <td>${row.id}</td>
+        <td>${escapeHtml(row.dealer_name)}</td>
+        <td>${escapeHtml(row.pbo_reference)}</td>
+        <td>
+          ${reviewBadge}
+          <div class="extracted">
+            <b>Status:</b> ${escapeHtml(row.extracted_status || '-')}<br>
+            <b>Sender:</b> ${escapeHtml(row.extracted_sender_name || '-')}<br>
+            <b>Amount:</b> ${escapeHtml(row.extracted_amount || '-')}<br>
+            <b>Type:</b> ${escapeHtml(row.extracted_transaction_type || '-')}<br>
+            <b>Date:</b> ${escapeHtml(row.extracted_date || '-')}<br>
+            <b>To:</b> ${escapeHtml(row.extracted_to_account_name || '-')}
+          </div>
+        </td>
+        <td>${escapeHtml(row.notes || '-')}</td>
+        <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
+        <td class="status-${row.status}">${row.status}</td>
+        <td>${row.created_at}</td>
+        <td>
+          <button class="action-btn btn-received" onclick="updateStatus(${row.id}, 'Received')">Received</button>
+          <button class="action-btn btn-verify" onclick="updateStatus(${row.id}, 'Verified')">Verify</button>
+          <button class="action-btn btn-resolve" onclick="updateStatus(${row.id}, 'Resolved')">Resolve</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.rowCheck').forEach(cb => cb.addEventListener('change', onCheckboxChange));
+    updateExportState();
+  }
+
+  const startDateEl = document.getElementById('startDate');
+  const endDateEl = document.getElementById('endDate');
+  const exportBtn = document.getElementById('exportBtn');
+  const dropdownTrigger = document.getElementById('dateDropdownTrigger');
+  const dropdownPanel = document.getElementById('dateDropdownPanel');
+  const dropdownLabel = document.getElementById('dateDropdownLabel');
+  const dropdownClear = document.getElementById('dateDropdownClear');
+
+  dropdownTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownPanel.classList.toggle('open');
+    dropdownTrigger.classList.toggle('active');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdownPanel.contains(e.target) && e.target !== dropdownTrigger) {
+      dropdownPanel.classList.remove('open');
+      dropdownTrigger.classList.remove('active');
+    }
+  });
+
+  function toLocalDateString(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function applyPreset(preset) {
+    const today = new Date();
+    let from = new Date();
+    let to = new Date();
+
+    if (preset === 'today') {
+      from = today;
+    } else if (preset === '7') {
+      from = new Date(new Date().setDate(today.getDate() - 7));
+    } else if (preset === '30') {
+      from = new Date(new Date().setDate(today.getDate() - 30));
+    } else if (preset === '3m') {
+      from = new Date(new Date().setMonth(today.getMonth() - 3));
+    } else if (preset === '6m') {
+      from = new Date(new Date().setMonth(today.getMonth() - 6));
+    } else if (preset === 'mtd') {
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+    } else if (preset === 'ytd') {
+      from = new Date(today.getFullYear(), 0, 1);
+    }
+
+    startDateEl.value = toLocalDateString(from);
+    endDateEl.value = toLocalDateString(to);
+    onDateChange();
+    updateDropdownLabel();
+    dropdownPanel.classList.remove('open');
+    dropdownTrigger.classList.remove('active');
+  }
+
+  document.querySelectorAll('.date-dropdown__preset').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+
+  dropdownClear.addEventListener('click', () => {
+    startDateEl.value = '';
+    endDateEl.value = '';
+    onDateChange();
+    updateDropdownLabel();
+  });
+
+  function updateDropdownLabel() {
+    if (startDateEl.value && endDateEl.value) {
+      dropdownLabel.textContent = `${startDateEl.value} to ${endDateEl.value}`;
+    } else {
+      dropdownLabel.textContent = 'Select date range';
+    }
+  }
+
+  function onCheckboxChange() {
+    const anyChecked = document.querySelectorAll('.rowCheck:checked').length > 0;
+    if (anyChecked) {
+      startDateEl.value = '';
+      endDateEl.value = '';
+      startDateEl.disabled = true;
+      endDateEl.disabled = true;
+    } else {
+      startDateEl.disabled = false;
+      endDateEl.disabled = false;
+    }
+    updateExportState();
+  }
+
+  function onDateChange() {
+    const anyDateFilled = startDateEl.value || endDateEl.value;
+    if (anyDateFilled) {
+      document.querySelectorAll('.rowCheck:checked').forEach(cb => cb.checked = false);
+      document.getElementById('selectAll').checked = false;
+    }
+    updateExportState();
+    updateDropdownLabel();
+  }
+
+  startDateEl.addEventListener('change', onDateChange);
+  endDateEl.addEventListener('change', onDateChange);
+
+  function updateExportState() {
+    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
+    const hasRange = startDateEl.value && endDateEl.value;
+    exportBtn.disabled = checkedCount === 0 && !hasRange;
+  }
+
+  document.getElementById('selectAll').addEventListener('change', (e) => {
+    document.querySelectorAll('.rowCheck').forEach(cb => cb.checked = e.target.checked);
+    onCheckboxChange();
+  });
+
+  exportBtn.addEventListener('click', async () => {
+    if (exportBtn.dataset.status !== 'idle') return;
+
+    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
+    let body;
+    if (checkedCount > 0) {
+      const ids = Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => parseInt(cb.dataset.id));
+      body = { ids };
+    } else {
+      body = { startDate: startDateEl.value, endDate: endDateEl.value };
+    }
+
+    const msg = document.getElementById('exportMsg');
+    msg.textContent = '';
+    exportBtn.dataset.status = 'loading';
+
+    try {
+      const res = await fetch('/api/submissions/export', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        msg.textContent = err.error || 'Export failed.';
+        exportBtn.dataset.status = 'idle';
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'submissions_export.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      exportBtn.dataset.status = 'success';
+      setTimeout(() => {
+        exportBtn.dataset.status = 'idle';
+      }, 1200);
+    } catch (err) {
+      msg.textContent = 'Export failed.';
+      exportBtn.dataset.status = 'idle';
+    }
+  });
+
+  async function updateStatus(id, status) {
+    await fetch(`/api/submissions/${id}/status`, {
+      method: 'PATCH',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ status })
+    });
+    loadSubmissions();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('financeAuthHeader');
+    window.location.href = '/login.html';
+  });
+
+  loadSubmissions();
+  setInterval(loadSubmissions, 5000);
+</script>
+</body>
+</html>

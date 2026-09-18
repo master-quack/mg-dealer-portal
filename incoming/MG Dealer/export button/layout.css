@@ -1,0 +1,125 @@
+.export-toggle {
+  --et-h: 56px;
+  --et-circle: 56px;
+  --et-idle-w: 120px;
+  --et-saved-w: 140px;
+  --et-text: 20px;
+  --et-icon: 1.875rem;
+  --et-spinner: 32px;
+  --et-gap: 12px;
+  --et-pad: 20px;
+  --et-bg: #e8e7e0;
+  --et-fg: #2c2a26;
+  --et-spinner-track: #d0ccc6;
+  --et-spinner-arc: #fff;
+  --et-saved-bg: #fff;
+  --et-saved-border: #00000030;
+  --et-saved-fg: #27272a;
+  --et-success-bg: #18181b;
+  --et-success-check: #fff;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--et-idle-w);
+  height: var(--et-h);
+  padding: 0;
+  overflow: hidden;
+  border: 0 solid transparent;
+  border-radius: 999px;
+  background: var(--et-bg);
+  color: var(--et-fg);
+  font: 700 var(--et-text)/1 system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.export-toggle[data-size="sm"] {
+  --et-h: 52px;
+  --et-circle: 52px;
+  --et-idle-w: 108px;
+  --et-saved-w: 128px;
+  --et-text: 18px;
+  --et-icon: 1.5rem;
+  --et-spinner: 28px;
+  --et-gap: 8px;
+  --et-pad: 16px;
+}
+
+.export-toggle[data-size="lg"] {
+  --et-h: 68px;
+  --et-circle: 68px;
+  --et-idle-w: 144px;
+  --et-saved-w: 168px;
+  --et-text: 22px;
+  --et-icon: 1.75rem;
+  --et-spinner: 36px;
+  --et-gap: 16px;
+  --et-pad: 20px;
+}
+
+.export-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.35);
+}
+
+.export-toggle__layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.export-toggle__spinner {
+  width: var(--et-spinner);
+  height: var(--et-spinner);
+}
+
+.export-toggle__spinner circle { stroke: var(--et-spinner-track); }
+.export-toggle__spinner path { stroke: var(--et-spinner-arc); }
+
+.export-toggle__check {
+  width: var(--et-icon);
+  height: var(--et-icon);
+  flex-shrink: 0;
+}
+
+.export-toggle__done {
+  gap: 0;
+  padding: 0;
+  color: var(--et-success-check);
+}
+
+.export-toggle[data-status="saved"] .export-toggle__done {
+  gap: var(--et-gap);
+  padding: 0 var(--et-pad);
+  color: var(--et-saved-fg);
+}
+
+.export-toggle__done-text {
+  display: none;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.export-toggle[data-status="saved"] .export-toggle__done-text {
+  display: inline;
+}
+
+@media (prefers-color-scheme: dark) {
+  .export-toggle {
+    --et-bg: #27272a;
+    --et-fg: #e4e4e7;
+    --et-spinner-track: #52525b;
+    --et-spinner-arc: #a1a1aa;
+    --et-saved-bg: #27272a;
+    --et-saved-border: #ffffff10;
+    --et-saved-fg: #a1a1aa;
+    --et-success-bg: #fff;
+    --et-success-check: #27272a;
+  }
+}

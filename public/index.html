@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dealer Payment Submission</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; background: #f5f6f8; }
+  h1 { font-size: 20px; margin: 0; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; }
+  #logoutBtn { background: #c0392b; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  form { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  label { display: block; margin-top: 14px; font-weight: bold; font-size: 14px; }
+  input, textarea { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+  button[type="submit"] { margin-top: 20px; width: 100%; padding: 10px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-size: 15px; cursor: pointer; }
+  button:disabled { background: #999; }
+  #status { margin-top: 14px; font-size: 14px; }
+  .success { color: #1a7e2e; }
+  .error { color: #c0392b; }
+</style>
+</head>
+<body>
+  <div class="header-row">
+    <h1>Payment Submission</h1>
+    <button id="logoutBtn">Log out</button>
+  </div>
+  <form id="submissionForm">
+    <label for="pbo_reference">PBO Reference Number</label>
+    <input type="text" id="pbo_reference" name="pbo_reference" required>
+
+    <label for="screenshot">Screenshot / Proof (PNG, JPG, or PDF)</label>
+    <input type="file" id="screenshot" name="screenshot" accept=".png,.jpg,.jpeg,.pdf" required>
+
+    <label for="notes">Notes (optional)</label>
+    <textarea id="notes" name="notes" rows="3"></textarea>
+
+    <button type="submit" id="submitBtn">Submit</button>
+    <div id="status"></div>
+  </form>
+
+<script>
+  const form = document.getElementById('submissionForm');
+  const statusDiv = document.getElementById('status');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    statusDiv.textContent = 'Submitting and reading screenshot...';
+    statusDiv.className = '';
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch('/api/submissions', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        statusDiv.textContent = 'Submitted successfully. The finance team has been notified.';
+        statusDiv.className = 'success';
+        form.reset();
+      } else {
+        statusDiv.textContent = data.error || 'Submission failed.';
+        statusDiv.className = 'error';
+      }
+    } catch (err) {
+      statusDiv.textContent = 'Network error. Please try again.';
+      statusDiv.className = 'error';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    fetch('/', {
+      headers: { 'Authorization': 'Basic ' + btoa('logout:logout') }
+    }).then(() => {
+      window.location.reload();
+    });
+  });
+</script>
+</body>
+</html>

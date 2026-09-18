@@ -1,0 +1,57 @@
+.floating-field {
+  position: relative;
+  width: 100%;
+}
+
+.floating-field__input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: 16px/1.4 system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.floating-field__input:focus {
+  border-color: #18181b;
+}
+
+.floating-field__label {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  color: #71717a;
+  font: 16px/1.4 system-ui, sans-serif;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.floating-field__input:focus + .floating-field__label,
+.floating-field__input:not(:placeholder-shown) + .floating-field__label {
+  top: -10px;
+  left: 12px;
+  padding: 0 4px;
+  font-size: 12px;
+  background: #fff;
+  color: #18181b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-field__input {
+    border-color: #3f3f46;
+  }
+  .floating-field__input:focus {
+    border-color: #fff;
+  }
+  .floating-field__label {
+    color: #a1a1aa;
+  }
+  .floating-field__input:focus + .floating-field__label,
+  .floating-field__input:not(:placeholder-shown) + .floating-field__label {
+    background: #18181b;
+    color: #fff;
+  }
+}

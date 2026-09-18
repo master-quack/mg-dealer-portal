@@ -1,0 +1,17 @@
+<button type="button" class="export-toggle" data-size="md" data-status="idle">
+  <span class="export-toggle__layer" data-layer="idle">Export</span>
+  <span class="export-toggle__layer" data-layer="loading" hidden>
+    <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+      <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+      <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+  </span>
+  <span class="export-toggle__layer export-toggle__done" data-layer="done" hidden>
+    <svg class="export-toggle__check" viewBox="0 0 16 16" aria-hidden="true">
+      <path fill="currentColor" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+    </svg>
+    <span class="export-toggle__done-text">Exported</span>
+  </span>
+</button>
+
+<script type="module" src="/js/export-toggle.js"></script>
