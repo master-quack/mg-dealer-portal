@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finance Dashboard</title>
+<title>Login</title>
 <link rel="icon" type="image/svg+xml" href="/mg-logo.svg">
 <style>
   body { font-family: Arial, sans-serif; max-width: 1300px; margin: 30px auto; padding: 0 16px; background: #f5f6f8; }
@@ -48,6 +48,17 @@
   }
   .export-bar { background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; }
 
+.pbo-search-input {
+  padding: 7px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 220px;
+}
+.pbo-search-input:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
   .date-dropdown { position: relative; }
   .date-dropdown__trigger {
     padding: 7px 14px;
@@ -160,35 +171,30 @@
   th { background: #fafafa; }
   tr.review-flag { background: #fff8e6; }
   .status-Received { color: #b8860b; font-weight: bold; }
-  .status-Verified { color: #1a73e8; font-weight: bold; }
-  .status-Resolved { color: #1a7e2e; font-weight: bold; }
+  .status-PostedinSAP { color: #1a7e2e; font-weight: bold; }
+  .status-Rejected { color: #c0392b; font-weight: bold; }
   .review-badge { display: inline-block; background: #e67e22; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; margin-bottom: 4px; }
   .extracted { font-size: 12px; color: #444; line-height: 1.5; }
   .extracted b { color: #111; }
-  button.action-btn { display: block; width: 100%; padding: 8px 14px; margin: 3px 0; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; color: #fff; }
-  .btn-resolve { background: #1a7e2e; }
-  .btn-received { background: #999; }
-
-  .btn-verify {
-    background: #1a73e8;
-    position: relative;
-    overflow: hidden;
-    transition: box-shadow 0.3s ease;
+ button.action-btn { display: block; width: 100%; padding: 8px 14px; margin: 3px 0; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; color: #fff; }
+  .btn-posted { background: #1a7e2e; }
+  .btn-rejected { background: #c0392b; }
+  .btn-note { background: #999; margin-top: 8px; }
+  .action-divider { border: none; border-top: 1px solid #ddd; margin: 4px 0; }
+  .note-box { margin-top: 6px; }
+  .note-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 50px;
+    margin-bottom: 4px;
   }
-  .btn-verify:hover {
-    box-shadow: 0 2px 10px rgba(26, 115, 232, 0.4);
-  }
-  .btn-verify::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-  }
-  .btn-verify:hover::after {
-    transform: translateX(100%);
-    transition: transform 0.7s ease;
-  }
+.btn-note-send { background: #1a73e8; }
   a.screenshot-link { color: #1a73e8; }
   #empty { padding: 20px; text-align: center; color: #777; }
 
@@ -238,16 +244,241 @@
     opacity: 1;
     transform: scale(1);
   }
+
+  /* --- Login view styles (from old login.html) --- */
+  #loginView {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+  }
+  .login-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    width: 320px;
+  }
+  .login-card h1 {
+    font-size: 20px;
+    margin: 0 0 24px 0;
+    color: #0b2545;
+    text-align: center;
+  }
+  .floating-field {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .floating-field__input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: 16px/1.4 system-ui, sans-serif;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+  }
+  .floating-field__input:focus {
+    border-color: #1a73e8;
+  }
+  .floating-field__label {
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    color: #71717a;
+    font: 16px/1.4 system-ui, sans-serif;
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+  .floating-field__input:focus + .floating-field__label,
+  .floating-field__input:not(:placeholder-shown) + .floating-field__label {
+    top: -10px;
+    left: 12px;
+    padding: 0 4px;
+    font-size: 12px;
+    background: #fff;
+    color: #1a73e8;
+  }
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #0b2545;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .login-btn:disabled { background: #999; cursor: not-allowed; }
+  #loginError { color: #c0392b; font-size: 13px; margin-top: 12px; text-align: center; min-height: 16px; }
+  /* --- App shell / sidebar layout --- */
+  body.has-sidebar {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .app-shell {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  .sidebar {
+    background: #0b2545;
+    width: 56px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.2s ease;
+    overflow: hidden;
+  }
+  .sidebar.expanded {
+    width: 220px;
+  }
+  .sidebar__hamburger {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 16px;
+    text-align: left;
+    width: 100%;
+  }
+  .sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+  }
+  .sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    color: #9db4d4;
+    padding: 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+    width: 100%;
+  }
+  .sidebar__item:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+  }
+  .sidebar__item.active {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-left-color: #1a73e8;
+  }
+  .sidebar__icon {
+    font-size: 17px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+  .sidebar__label {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .sidebar.expanded .sidebar__label {
+    opacity: 1;
+  }
+  .main-content {
+    flex: 1;
+    padding: 30px 24px;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  .tab-panel {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
 </style>
+
+
 </head>
 <body>
+
+<!-- ===================== LOGIN VIEW ===================== -->
+<div id="loginView" style="display:none;">
+  <div class="login-card">
+    <h1>Finance Dashboard Login</h1>
+    <form id="loginForm">
+      <div class="floating-field">
+        <input class="floating-field__input" id="username" name="username" type="text" placeholder=" " autocomplete="username" required>
+        <label class="floating-field__label" for="username">Username</label>
+      </div>
+      <div class="floating-field">
+        <input class="floating-field__input" id="password" name="password" type="password" placeholder=" " autocomplete="current-password" required>
+        <label class="floating-field__label" for="password">Password</label>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">Log In</button>
+      <div id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD VIEW (with sidebar) ===================== -->
+<div id="dashboardView" style="display:none;">
+  <div class="app-shell">
+    <nav class="sidebar" id="sidebar">
+      <button class="sidebar__hamburger" id="sidebarToggle">☰</button>
+      <div class="sidebar__nav">
+        <button class="sidebar__item active" data-tab="home">
+          <span class="sidebar__icon">🏠</span>
+          <span class="sidebar__label">Home</span>
+        </button>
+        <button class="sidebar__item" data-tab="submissions">
+          <span class="sidebar__icon">📋</span>
+          <span class="sidebar__label">Submissions</span>
+        </button>
+        <button class="sidebar__item" data-tab="admin">
+          <span class="sidebar__icon">⚙️</span>
+          <span class="sidebar__label">Admin</span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+
+      <!-- ============ HOME TAB ============ -->
+      <div class="tab-panel" id="tab-home">
+        <div class="header-row">
+          <h1>Home</h1>
+          <button id="logoutBtn2">Log out</button>
+        </div>
+        <p style="color:#777;">Home tab content coming next.</p>
+      </div>
+
+      <!-- ============ SUBMISSIONS TAB (existing dashboard content moves here) ============ -->
+      <div class="tab-panel" id="tab-submissions" style="display:none;">
   <div class="header-row">
     <h1>Finance Dashboard</h1>
     <button id="logoutBtn">Log out</button>
   </div>
 
   <div class="export-bar">
-    <div class="date-dropdown">
+<input type="text" id="pboSearch" placeholder="Search PBO reference..." class="pbo-search-input">
+<div class="date-dropdown">
+  <button type="button" class="date-dropdown__trigger" id="dealerDropdownTrigger">
+    <span id="dealerDropdownLabel">Filter by dealer</span> ▾
+  </button>
+  <div class="date-dropdown__panel" id="dealerDropdownPanel">
+    <div id="dealerCheckboxList"></div>
+    <button type="button" class="date-dropdown__clear" id="dealerDropdownClear">Clear</button>
+  </div>
+</div>
+<div class="date-dropdown">
       <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
         <span id="dateDropdownLabel">Select date range</span> ▾
       </button>
@@ -313,29 +544,145 @@
     </thead>
     <tbody id="tbody"></tbody>
   </table>
-  <div id="empty" style="display:none;">No submissions yet.</div>
+    <div id="empty" style="display:none;">No submissions yet.</div>
+      </div>
+      <!-- end submissions tab -->
+
+      <!-- ============ ADMIN TAB ============ -->
+      <div class="tab-panel" id="tab-admin" style="display:none;">
+        <div class="header-row">
+          <h1>Admin</h1>
+          <button id="logoutBtn3">Log out</button>
+        </div>
+        <p style="color:#777;">Admin tab content coming later (Stage 4).</p>
+      </div>
+
+    </main>
+  </div>
+</div>
 
 <script>
   let allRows = [];
 
-  document.title = 'Dashboard';
-
-  if (!sessionStorage.getItem('financeAuthHeader')) {
-    window.location.href = '/login.html';
+  // ---------- View switching ----------
+  function showLogin() {
+    document.getElementById('loginView').style.display = 'flex';
+    document.getElementById('dashboardView').style.display = 'none';
+    document.body.classList.remove('has-sidebar');
+    document.title = 'Login';
   }
 
-  function authHeaders(extra = {}) {
-    const stored = sessionStorage.getItem('financeAuthHeader');
-    return stored ? { 'Authorization': stored, ...extra } : extra;
+  function showDashboard() {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'block';
+    document.body.classList.add('has-sidebar');   
+    document.title = 'Dashboard';
   }
 
-  async function loadSubmissions() {
-    const previouslyChecked = new Set(
-      Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
+  // ---------- Auth check on page load ----------
+  async function checkAuthAndInit() {
+    try {
+      const res = await fetch('/api/submissions', { credentials: 'same-origin' });
+      if (res.ok) {
+        showDashboard();
+        const data = await res.json();
+        renderSubmissions(data);
+        setInterval(loadSubmissions, 5000);
+      } else {
+        showLogin();
+      }
+    } catch (err) {
+      showLogin();
+    }
+  }
+
+  // ---------- Login form ----------
+  const loginForm = document.getElementById('loginForm');
+  const loginError = document.getElementById('loginError');
+  const loginBtn = document.getElementById('loginBtn');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true;
+    loginError.textContent = '';
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (res.ok) {
+        showDashboard();
+        loadSubmissions();
+        setInterval(loadSubmissions, 5000);
+      } else {
+        const err = await res.json();
+        loginError.textContent = err.error || 'Incorrect username or password.';
+        loginBtn.disabled = false;
+      }
+    } catch (err) {
+      loginError.textContent = 'Something went wrong. Try again.';
+      loginBtn.disabled = false;
+    }
+  });
+
+  // ---------- Logout ----------
+async function handleLogout() {
+  await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+  showLogin();
+}
+document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+document.getElementById('logoutBtn2').addEventListener('click', handleLogout);
+document.getElementById('logoutBtn3').addEventListener('click', handleLogout);
+
+  // ---------- Dashboard data loading ----------
+async function loadSubmissions() {
+  const res = await fetch('/api/submissions', { credentials: 'same-origin' });
+  if (!res.ok) {
+    showLogin();
+    return;
+  }
+  const data = await res.json();
+  allRows = data;
+  applyFilters();
+}
+
+function applyFilters() {
+  const searchTerm = document.getElementById('pboSearch').value.trim().toLowerCase();
+  let filtered = allRows;
+
+  if (searchTerm) {
+    filtered = filtered.filter(row =>
+      row.pbo_reference.toLowerCase().includes(searchTerm)
     );
-    const res = await fetch('/api/submissions', { headers: authHeaders() });
-    const data = await res.json();
-    allRows = data;
+  }
+
+  if (selectedDealers.size > 0) {
+    filtered = filtered.filter(row => selectedDealers.has(row.dealer_name));
+  }
+
+  if (startDateEl.value && endDateEl.value) {
+    filtered = filtered.filter(row => {
+      const rowDate = row.created_at.split(' ')[0]; // "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DD"
+      return rowDate >= startDateEl.value && rowDate <= endDateEl.value;
+    });
+  }
+
+  renderSubmissions(filtered, false); // false = don't overwrite allRows
+}
+
+function renderSubmissions(data, updateAllRows = true) {
+  const previouslyChecked = new Set(
+    Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
+  );
+  if (updateAllRows) allRows = data;
+
     const tbody = document.getElementById('tbody');
     const empty = document.getElementById('empty');
     tbody.innerHTML = '';
@@ -381,13 +728,19 @@
         </td>
         <td>${escapeHtml(row.notes || '-')}</td>
         <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
-        <td class="status-${row.status}">${row.status}</td>
+        <td class="status-${row.status.replace(/\s+/g, '')}">${row.status}</td>
         <td>${row.created_at}</td>
-        <td>
-          <button class="action-btn btn-received" onclick="updateStatus(${row.id}, 'Received')">Received</button>
-          <button class="action-btn btn-verify" onclick="updateStatus(${row.id}, 'Verified')">Verify</button>
-          <button class="action-btn btn-resolve" onclick="updateStatus(${row.id}, 'Resolved')">Resolve</button>
-        </td>
+	<td>
+	  <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Posted in SAP</button>
+          <button class="action-btn btn-rejected" onclick="updateStatus(${row.id}, 'Rejected')">Rejected</button>
+          <hr class="action-divider">
+          <button class="action-btn btn-note" onclick="toggleNoteBox(${row.id})">Add Note</button>
+	  <div class="note-box" id="noteBox-${row.id}" style="display:none;">
+	    <textarea class="note-textarea" id="noteText-${row.id}" placeholder="Type note..."></textarea>
+	    <button class="action-btn btn-note-send" onclick="sendNote(${row.id})">Send Note</button>
+	  </div>
+	</td>
+
       `;
       tbody.appendChild(tr);
     });
@@ -409,6 +762,69 @@
     dropdownPanel.classList.toggle('open');
     dropdownTrigger.classList.toggle('active');
   });
+ 
+// ---------- Dealer filter ----------
+let selectedDealers = new Set();
+
+const dealerDropdownTrigger = document.getElementById('dealerDropdownTrigger');
+const dealerDropdownPanel = document.getElementById('dealerDropdownPanel');
+const dealerDropdownLabel = document.getElementById('dealerDropdownLabel');
+const dealerDropdownClear = document.getElementById('dealerDropdownClear');
+const dealerCheckboxList = document.getElementById('dealerCheckboxList');
+
+dealerDropdownTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dealerDropdownPanel.classList.toggle('open');
+  dealerDropdownTrigger.classList.toggle('active');
+});
+
+document.addEventListener('click', (e) => {
+  if (!dealerDropdownPanel.contains(e.target) && e.target !== dealerDropdownTrigger) {
+    dealerDropdownPanel.classList.remove('open');
+    dealerDropdownTrigger.classList.remove('active');
+  }
+});
+
+async function loadDealerList() {
+  const res = await fetch('/api/dealers', { credentials: 'same-origin' });
+  if (!res.ok) return;
+  const dealers = await res.json();
+  dealerCheckboxList.innerHTML = dealers.map(d => `
+    <label style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; cursor:pointer;">
+      <input type="checkbox" class="dealerCheckbox" value="${escapeHtml(d.dealer_name)}">
+      ${escapeHtml(d.dealer_name)}
+    </label>
+  `).join('');
+
+  document.querySelectorAll('.dealerCheckbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        selectedDealers.add(cb.value);
+      } else {
+        selectedDealers.delete(cb.value);
+      }
+      updateDealerDropdownLabel();
+      applyFilters();
+    });
+  });
+}
+
+function updateDealerDropdownLabel() {
+  if (selectedDealers.size === 0) {
+    dealerDropdownLabel.textContent = 'Filter by dealer';
+  } else if (selectedDealers.size === 1) {
+    dealerDropdownLabel.textContent = [...selectedDealers][0];
+  } else {
+    dealerDropdownLabel.textContent = `${selectedDealers.size} dealers selected`;
+  }
+}
+
+dealerDropdownClear.addEventListener('click', () => {
+  selectedDealers.clear();
+  document.querySelectorAll('.dealerCheckbox').forEach(cb => cb.checked = false);
+  updateDealerDropdownLabel();
+  applyFilters();
+});
 
   document.addEventListener('click', (e) => {
     if (!dropdownPanel.contains(e.target) && e.target !== dropdownTrigger) {
@@ -486,18 +902,20 @@
     updateExportState();
   }
 
-  function onDateChange() {
-    const anyDateFilled = startDateEl.value || endDateEl.value;
-    if (anyDateFilled) {
-      document.querySelectorAll('.rowCheck:checked').forEach(cb => cb.checked = false);
-      document.getElementById('selectAll').checked = false;
-    }
-    updateExportState();
-    updateDropdownLabel();
+function onDateChange() {
+  const anyDateFilled = startDateEl.value || endDateEl.value;
+  if (anyDateFilled) {
+    document.querySelectorAll('.rowCheck:checked').forEach(cb => cb.checked = false);
+    document.getElementById('selectAll').checked = false;
   }
+  updateExportState();
+  updateDropdownLabel();
+  applyFilters();
+}
 
   startDateEl.addEventListener('change', onDateChange);
   endDateEl.addEventListener('change', onDateChange);
+  document.getElementById('pboSearch').addEventListener('input', applyFilters);
 
   function updateExportState() {
     const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
@@ -529,7 +947,8 @@
     try {
       const res = await fetch('/api/submissions/export', {
         method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
       if (!res.ok) {
@@ -558,14 +977,28 @@
     }
   });
 
-  async function updateStatus(id, status) {
-    await fetch(`/api/submissions/${id}/status`, {
-      method: 'PATCH',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ status })
-    });
-    loadSubmissions();
+function toggleNoteBox(id) {
+  const box = document.getElementById(`noteBox-${id}`);
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function sendNote(id) {
+  const textarea = document.getElementById(`noteText-${id}`);
+  const note = textarea.value.trim();
+  if (!note) {
+    alert('Please type a note before sending.');
+    return;
   }
+  await fetch(`/api/submissions/${id}/note`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note })
+  });
+  textarea.value = '';
+  document.getElementById(`noteBox-${id}`).style.display = 'none';
+  loadSubmissions();
+}
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -573,13 +1006,37 @@
     return div.innerHTML;
   }
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('financeAuthHeader');
-    window.location.href = '/login.html';
+  // ---------- Kick things off ----------
+  checkAuthAndInit();
+// ---------- Sidebar: hamburger toggle ----------
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('expanded');
+});
+
+// ---------- Sidebar: tab switching ----------
+const tabTitles = {
+  home: 'Home',
+  submissions: 'Submissions',
+  admin: 'Admin'
+};
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.style.display = 'none';
+  });
+  document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+  document.querySelectorAll('.sidebar__item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === tabName);
   });
 
-  loadSubmissions();
-  setInterval(loadSubmissions, 5000);
+  document.title = tabTitles[tabName] || 'Dashboard';
+}
+
+document.querySelectorAll('.sidebar__item').forEach(item => {
+  item.addEventListener('click', () => switchTab(item.dataset.tab));
+});
+  loadDealerList();
 </script>
 </body>
 </html>
