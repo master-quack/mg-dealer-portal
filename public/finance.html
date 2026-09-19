@@ -6,59 +6,158 @@
 <title>Login</title>
 <link rel="icon" type="image/svg+xml" href="/mg-logo.svg">
 <style>
-  body { font-family: Arial, sans-serif; max-width: 1300px; margin: 30px auto; padding: 0 16px; background: #f5f6f8; }
+  body { font-family: Arial, sans-serif; background: #f5f6f8; margin: 0; padding: 0; }
   h1 { font-size: 20px; margin: 0; }
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  #logoutBtn {
-    padding: 0.6em 1.4em;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    color: #c0392b;
-    background: transparent;
-    transition: all 500ms;
-    font-size: 12px;
-    position: relative;
-    overflow: hidden;
-    outline: 2px solid #c0392b;
-  }
-  #logoutBtn:hover {
-    color: #ffffff;
-    transform: scale(1.06);
-    outline: 2px solid #e26a5c;
-    box-shadow: 4px 5px 17px -4px #8e2c20;
-  }
-  #logoutBtn::before {
-    content: "";
-    position: absolute;
-    left: -50px;
-    top: 0;
-    width: 0;
-    height: 100%;
-    background-color: #c0392b;
-    transform: skewX(45deg);
-    z-index: -1;
-    transition: width 500ms;
-  }
-  #logoutBtn:hover::before {
-    width: 250%;
-  }
-  .export-bar { background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
 
-.pbo-search-input {
-  padding: 7px 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13px;
-  width: 220px;
-}
-.pbo-search-input:focus {
-  border-color: #1a73e8;
-  outline: none;
-}
+  /* --- Login view --- */
+  #loginView {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  .login-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    width: 320px;
+  }
+  .login-card h1 {
+    font-size: 20px;
+    margin: 0 0 24px 0;
+    color: #0b2545;
+    text-align: center;
+  }
+  .floating-field {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .floating-field__input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: 16px/1.4 system-ui, sans-serif;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+  }
+  .floating-field__input:focus { border-color: #1a73e8; }
+  .floating-field__label {
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    color: #71717a;
+    font: 16px/1.4 system-ui, sans-serif;
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+  .floating-field__input:focus + .floating-field__label,
+  .floating-field__input:not(:placeholder-shown) + .floating-field__label {
+    top: -10px;
+    left: 12px;
+    padding: 0 4px;
+    font-size: 12px;
+    background: #fff;
+    color: #1a73e8;
+  }
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #0b2545;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .login-btn:disabled { background: #999; cursor: not-allowed; }
+  #loginError { color: #c0392b; font-size: 13px; margin-top: 12px; text-align: center; min-height: 16px; }
+
+  /* --- App shell / sidebar --- */
+  .app-shell {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  .sidebar {
+    background: #0b2545;
+    width: 56px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: width 0.2s ease;
+    overflow: hidden;
+  }
+  .sidebar.expanded { width: 220px; }
+  .sidebar__toggle {
+    background: none;
+    border: none;
+    color: #9db4d4;
+    cursor: pointer;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+  }
+  .sidebar__toggle svg { transition: transform 0.2s ease; }
+  .sidebar.expanded .sidebar__toggle svg { transform: rotate(180deg); }
+  .sidebar__toggle:hover { color: #fff; }
+  .sidebar.expanded .sidebar__toggle { justify-content: flex-start; padding-left: 18px; }
+  .sidebar__nav { display: flex; flex-direction: column; margin-top: 8px; }
+  .sidebar__bottom { display: flex; flex-direction: column; margin-top: auto; padding-bottom: 8px; }
+  .sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    color: #9db4d4;
+    padding: 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+    width: 100%;
+  }
+  .sidebar__item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sidebar__item.active { background: rgba(255,255,255,0.1); color: #fff; border-left-color: #1a73e8; }
+  .sidebar__icon { font-size: 17px; flex-shrink: 0; width: 20px; text-align: center; }
+  .sidebar__label { opacity: 0; transition: opacity 0.15s ease; }
+  .sidebar.expanded .sidebar__label { opacity: 1; }
+  .sidebar .logout-btn { color: #e57373; }
+  .sidebar .logout-btn:hover { background: rgba(192, 57, 43, 0.15); color: #ff8a80; border-left-color: #c0392b; }
+
+  .main-content {
+    flex: 1;
+    padding: 30px 24px;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  .tab-panel { max-width: 1300px; margin: 0 auto; }
+
+  /* --- Shared: filter bar (used on Home + Submissions) --- */
+  .export-bar { background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; }
+  .pbo-search-input {
+    padding: 7px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 220px;
+  }
+  .pbo-search-input:focus { border-color: #1a73e8; outline: none; }
+
   .date-dropdown { position: relative; }
   .date-dropdown__trigger {
     padding: 7px 14px;
@@ -129,43 +228,22 @@
     cursor: pointer;
     transition: background 0.2s ease, opacity 0.2s ease;
   }
-  .export-toggle:disabled {
-    background: #999;
-    cursor: not-allowed;
-  }
-  .export-toggle__layer {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: opacity 0.15s ease;
-  }
+  .export-toggle:disabled { background: #999; cursor: not-allowed; }
+  .export-toggle__layer { display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.15s ease; }
   .export-toggle[data-status="loading"] .export-toggle__layer[data-layer="idle"],
-  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="idle"] {
-    display: none;
-  }
+  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="idle"] { display: none; }
   .export-toggle__layer[data-layer="loading"],
-  .export-toggle__layer[data-layer="done"] {
-    display: none;
-  }
-  .export-toggle[data-status="loading"] .export-toggle__layer[data-layer="loading"] {
-    display: inline-flex;
-  }
-  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="done"] {
-    display: inline-flex;
-  }
-  .export-toggle__spinner {
-    width: 16px;
-    height: 16px;
-    animation: spin 0.7s linear infinite;
-  }
+  .export-toggle__layer[data-layer="done"] { display: none; }
+  .export-toggle[data-status="loading"] .export-toggle__layer[data-layer="loading"] { display: inline-flex; }
+  .export-toggle[data-status="success"] .export-toggle__layer[data-layer="done"] { display: inline-flex; }
+  .export-toggle__spinner { width: 16px; height: 16px; animation: spin 0.7s linear infinite; }
   .export-toggle__spinner circle { stroke: rgba(255,255,255,0.35); }
   .export-toggle__spinner path { stroke: #fff; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .export-toggle__check {
-    width: 16px;
-    height: 16px;
-  }
+  .export-toggle__check { width: 16px; height: 16px; }
   #exportMsg { font-size: 12px; color: #c0392b; }
+
+  /* --- Shared table styling --- */
   table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
   th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
   th { background: #fafafa; }
@@ -176,7 +254,7 @@
   .review-badge { display: inline-block; background: #e67e22; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; margin-bottom: 4px; }
   .extracted { font-size: 12px; color: #444; line-height: 1.5; }
   .extracted b { color: #111; }
- button.action-btn { display: block; width: 100%; padding: 8px 14px; margin: 3px 0; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; color: #fff; }
+  button.action-btn { display: block; width: 100%; padding: 8px 14px; margin: 3px 0; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; color: #fff; }
   .btn-posted { background: #1a7e2e; }
   .btn-rejected { background: #c0392b; }
   .btn-note { background: #999; margin-top: 8px; }
@@ -194,218 +272,31 @@
     min-height: 50px;
     margin-bottom: 4px;
   }
-.btn-note-send { background: #1a73e8; }
+  .btn-note-send { background: #1a73e8; }
   a.screenshot-link { color: #1a73e8; }
   #empty { padding: 20px; text-align: center; color: #777; }
 
-  .ui-checkbox {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-  }
-  .ui-checkbox__input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
+  .ui-checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; position: relative; }
+  .ui-checkbox__input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .ui-checkbox__box {
-    display: grid;
-    place-content: center;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #fff;
-    color: #fff;
+    display: grid; place-content: center; width: 18px; height: 18px; flex-shrink: 0;
+    border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #fff;
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
   }
-  .ui-checkbox__input:focus-visible + .ui-checkbox__box {
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 3px rgb(26 115 232 / 0.35);
-  }
-  .ui-checkbox__input:checked + .ui-checkbox__box {
-    border-color: #1a73e8;
-    background: #1a73e8;
-  }
-  .ui-checkbox__icon {
-    width: 14px;
-    height: 14px;
-    opacity: 0;
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    transform: scale(0.8);
-  }
-  .ui-checkbox__input:checked ~ .ui-checkbox__box .ui-checkbox__icon {
-    opacity: 1;
-    transform: scale(1);
-  }
+  .ui-checkbox__input:focus-visible + .ui-checkbox__box { border-color: #1a73e8; box-shadow: 0 0 0 3px rgb(26 115 232 / 0.35); }
+  .ui-checkbox__input:checked + .ui-checkbox__box { border-color: #1a73e8; background: #1a73e8; }
+  .ui-checkbox__icon { width: 14px; height: 14px; opacity: 0; transition: opacity 0.15s ease, transform 0.15s ease; transform: scale(0.8); }
+  .ui-checkbox__input:checked ~ .ui-checkbox__box .ui-checkbox__icon { opacity: 1; transform: scale(1); }
 
-  /* --- Login view styles (from old login.html) --- */
-  #loginView {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 80vh;
-  }
-  .login-card {
-    background: #fff;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    width: 320px;
-  }
-  .login-card h1 {
-    font-size: 20px;
-    margin: 0 0 24px 0;
-    color: #0b2545;
-    text-align: center;
-  }
-  .floating-field {
-    position: relative;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  .floating-field__input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #e4e4e7;
-    border-radius: 8px;
-    background: transparent;
-    color: inherit;
-    font: 16px/1.4 system-ui, sans-serif;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease;
-  }
-  .floating-field__input:focus {
-    border-color: #1a73e8;
-  }
-  .floating-field__label {
-    position: absolute;
-    left: 16px;
-    top: 12px;
-    color: #71717a;
-    font: 16px/1.4 system-ui, sans-serif;
-    pointer-events: none;
-    transition: all 0.2s ease;
-  }
-  .floating-field__input:focus + .floating-field__label,
-  .floating-field__input:not(:placeholder-shown) + .floating-field__label {
-    top: -10px;
-    left: 12px;
-    padding: 0 4px;
-    font-size: 12px;
-    background: #fff;
-    color: #1a73e8;
-  }
-  .login-btn {
-    width: 100%;
-    padding: 12px;
-    background: #0b2545;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 4px;
-  }
-  .login-btn:disabled { background: #999; cursor: not-allowed; }
-  #loginError { color: #c0392b; font-size: 13px; margin-top: 12px; text-align: center; min-height: 16px; }
-  /* --- App shell / sidebar layout --- */
-  body.has-sidebar {
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-  .app-shell {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-  }
-  .sidebar {
-    background: #0b2545;
-    width: 56px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    transition: width 0.2s ease;
-    overflow: hidden;
-  }
-  .sidebar.expanded {
-    width: 220px;
-  }
-  .sidebar__hamburger {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 16px;
-    text-align: left;
-    width: 100%;
-  }
-  .sidebar__nav {
-    display: flex;
-    flex-direction: column;
-    margin-top: 8px;
-  }
-  .sidebar__item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: none;
-    border: none;
-    border-left: 3px solid transparent;
-    color: #9db4d4;
-    padding: 12px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    text-align: left;
-    width: 100%;
-  }
-  .sidebar__item:hover {
-    background: rgba(255,255,255,0.06);
-    color: #fff;
-  }
-  .sidebar__item.active {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-    border-left-color: #1a73e8;
-  }
-  .sidebar__icon {
-    font-size: 17px;
-    flex-shrink: 0;
-    width: 20px;
-    text-align: center;
-  }
-  .sidebar__label {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-  .sidebar.expanded .sidebar__label {
-    opacity: 1;
-  }
-  .main-content {
-    flex: 1;
-    padding: 30px 24px;
-    overflow-y: auto;
-    height: 100vh;
-    box-sizing: border-box;
-  }
-  .tab-panel {
-    max-width: 1300px;
-    margin: 0 auto;
-  }
+  /* --- Home tab: summary table --- */
+  .summary-table td, .summary-table th { text-align: center; }
+  .summary-table td:first-child, .summary-table th:first-child { text-align: left; }
+  .summary-table tr.total-row { font-weight: bold; background: #fafafa; }
+  .summary-table tr.total-row td { border-top: 2px solid #ddd; }
+  .count-received { color: #b8860b; font-weight: bold; }
+  .count-posted { color: #1a7e2e; font-weight: bold; }
+  .count-rejected { color: #c0392b; font-weight: bold; }
 </style>
-
-
 </head>
 <body>
 
@@ -428,11 +319,16 @@
   </div>
 </div>
 
-<!-- ===================== DASHBOARD VIEW (with sidebar) ===================== -->
+<!-- ===================== DASHBOARD VIEW ===================== -->
 <div id="dashboardView" style="display:none;">
   <div class="app-shell">
     <nav class="sidebar" id="sidebar">
-      <button class="sidebar__hamburger" id="sidebarToggle">☰</button>
+      <button class="sidebar__toggle" id="sidebarToggle" title="Toggle sidebar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+      </button>
       <div class="sidebar__nav">
         <button class="sidebar__item active" data-tab="home">
           <span class="sidebar__icon">🏠</span>
@@ -442,9 +338,15 @@
           <span class="sidebar__icon">📋</span>
           <span class="sidebar__label">Submissions</span>
         </button>
+      </div>
+      <div class="sidebar__bottom">
         <button class="sidebar__item" data-tab="admin">
           <span class="sidebar__icon">⚙️</span>
           <span class="sidebar__label">Admin</span>
+        </button>
+        <button class="sidebar__item logout-btn" id="sidebarLogoutBtn">
+          <span class="sidebar__icon">🚪</span>
+          <span class="sidebar__label">Log out</span>
         </button>
       </div>
     </nav>
@@ -455,104 +357,155 @@
       <div class="tab-panel" id="tab-home">
         <div class="header-row">
           <h1>Home</h1>
-          <button id="logoutBtn2">Log out</button>
         </div>
-        <p style="color:#777;">Home tab content coming next.</p>
+
+        <div class="export-bar">
+          <div class="date-dropdown">
+            <button type="button" class="date-dropdown__trigger" id="homeDealerDropdownTrigger">
+              <span id="homeDealerDropdownLabel">Filter by dealer</span> ▾
+            </button>
+            <div class="date-dropdown__panel" id="homeDealerDropdownPanel">
+              <div id="homeDealerCheckboxList"></div>
+              <button type="button" class="date-dropdown__clear" id="homeDealerDropdownClear">Clear</button>
+            </div>
+          </div>
+          <div class="date-dropdown">
+            <button type="button" class="date-dropdown__trigger" id="homeDateDropdownTrigger">
+              <span id="homeDateDropdownLabel">Select date range</span> ▾
+            </button>
+            <div class="date-dropdown__panel" id="homeDateDropdownPanel">
+              <div class="date-dropdown__presets">
+                <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
+                <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
+                <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
+                <button type="button" class="date-dropdown__preset" data-preset="thisweek">This week</button>
+                <button type="button" class="date-dropdown__preset" data-preset="thismonth">This month</button>
+                <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
+                <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
+                <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+              </div>
+              <div class="date-dropdown__custom">
+                <label>From <input type="date" id="homeStartDate"></label>
+                <label>To <input type="date" id="homeEndDate"></label>
+              </div>
+              <button type="button" class="date-dropdown__clear" id="homeDateDropdownClear">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <table class="summary-table" id="summaryTable">
+          <thead>
+            <tr>
+              <th>Dealer</th>
+              <th>Received</th>
+              <th>Posted in SAP</th>
+              <th>Rejected</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="summaryTbody"></tbody>
+          <tfoot>
+            <tr class="total-row" id="summaryTotalRow">
+              <td>Total</td>
+              <td id="totalReceived">0</td>
+              <td id="totalPosted">0</td>
+              <td id="totalRejected">0</td>
+              <td id="totalAll">0</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
 
-      <!-- ============ SUBMISSIONS TAB (existing dashboard content moves here) ============ -->
+      <!-- ============ SUBMISSIONS TAB ============ -->
       <div class="tab-panel" id="tab-submissions" style="display:none;">
-  <div class="header-row">
-    <h1>Finance Dashboard</h1>
-    <button id="logoutBtn">Log out</button>
-  </div>
-
-  <div class="export-bar">
-<input type="text" id="pboSearch" placeholder="Search PBO reference..." class="pbo-search-input">
-<div class="date-dropdown">
-  <button type="button" class="date-dropdown__trigger" id="dealerDropdownTrigger">
-    <span id="dealerDropdownLabel">Filter by dealer</span> ▾
-  </button>
-  <div class="date-dropdown__panel" id="dealerDropdownPanel">
-    <div id="dealerCheckboxList"></div>
-    <button type="button" class="date-dropdown__clear" id="dealerDropdownClear">Clear</button>
-  </div>
-</div>
-<div class="date-dropdown">
-      <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
-        <span id="dateDropdownLabel">Select date range</span> ▾
-      </button>
-      <div class="date-dropdown__panel" id="dateDropdownPanel">
-        <div class="date-dropdown__presets">
-          <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
-          <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
-          <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
-          <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
-          <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
-          <button type="button" class="date-dropdown__preset" data-preset="mtd">Month to date</button>
-          <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+        <div class="header-row">
+          <h1>Finance Dashboard</h1>
         </div>
-        <div class="date-dropdown__custom">
-          <label>From <input type="date" id="startDate"></label>
-          <label>To <input type="date" id="endDate"></label>
-        </div>
-        <button type="button" class="date-dropdown__clear" id="dateDropdownClear">Clear</button>
-      </div>
-    </div>
-    <span style="flex: 1;"></span>
-    <button type="button" class="export-toggle" data-status="idle" id="exportBtn" disabled>
-      <span class="export-toggle__layer" data-layer="idle">Export</span>
-      <span class="export-toggle__layer" data-layer="loading">
-        <svg class="export-toggle__spinner" viewBox="0 0 26 26">
-          <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
-          <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
-        </svg>
-      </span>
-      <span class="export-toggle__layer" data-layer="done">
-        <svg class="export-toggle__check" viewBox="0 0 16 16">
-          <path fill="currentColor" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-        </svg>
-        Exported
-      </span>
-    </button>
-    <span id="exportMsg"></span>
-  </div>
 
-  <table id="table">
-    <thead>
-      <tr>
-        <th>
-          <label class="ui-checkbox">
-            <input type="checkbox" id="selectAll" class="ui-checkbox__input">
-            <span class="ui-checkbox__box">
-              <svg class="ui-checkbox__icon" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="export-bar">
+          <input type="text" id="pboSearch" placeholder="Search PBO reference..." class="pbo-search-input">
+          <div class="date-dropdown">
+            <button type="button" class="date-dropdown__trigger" id="dealerDropdownTrigger">
+              <span id="dealerDropdownLabel">Filter by dealer</span> ▾
+            </button>
+            <div class="date-dropdown__panel" id="dealerDropdownPanel">
+              <div id="dealerCheckboxList"></div>
+              <button type="button" class="date-dropdown__clear" id="dealerDropdownClear">Clear</button>
+            </div>
+          </div>
+          <div class="date-dropdown">
+            <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
+              <span id="dateDropdownLabel">Select date range</span> ▾
+            </button>
+            <div class="date-dropdown__panel" id="dateDropdownPanel">
+              <div class="date-dropdown__presets">
+                <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
+                <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
+                <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
+                <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
+                <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
+                <button type="button" class="date-dropdown__preset" data-preset="mtd">Month to date</button>
+                <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+              </div>
+              <div class="date-dropdown__custom">
+                <label>From <input type="date" id="startDate"></label>
+                <label>To <input type="date" id="endDate"></label>
+              </div>
+              <button type="button" class="date-dropdown__clear" id="dateDropdownClear">Clear</button>
+            </div>
+          </div>
+          <span style="flex: 1;"></span>
+          <button type="button" class="export-toggle" data-status="idle" id="exportBtn" disabled>
+            <span class="export-toggle__layer" data-layer="idle">Export</span>
+            <span class="export-toggle__layer" data-layer="loading">
+              <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+                <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+                <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
               </svg>
             </span>
-          </label>
-        </th>
-        <th>ID</th>
-        <th>Dealer (logged in)</th>
-        <th>PBO Ref</th>
-        <th>Extracted from Screenshot</th>
-        <th>Notes</th>
-        <th>Screenshot</th>
-        <th>Status</th>
-        <th>Submitted</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-    <div id="empty" style="display:none;">No submissions yet.</div>
+            <span class="export-toggle__layer" data-layer="done">
+              <svg class="export-toggle__check" viewBox="0 0 16 16">
+                <path fill="currentColor" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+              </svg>
+              Exported
+            </span>
+          </button>
+          <span id="exportMsg"></span>
+        </div>
+
+        <table id="table">
+          <thead>
+            <tr>
+              <th>
+                <label class="ui-checkbox">
+                  <input type="checkbox" id="selectAll" class="ui-checkbox__input">
+                  <span class="ui-checkbox__box">
+                    <svg class="ui-checkbox__icon" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </label>
+              </th>
+              <th>ID</th>
+              <th>Dealer (logged in)</th>
+              <th>PBO Ref</th>
+              <th>Extracted from Screenshot</th>
+              <th>Notes</th>
+              <th>Screenshot</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="empty" style="display:none;">No submissions yet.</div>
       </div>
-      <!-- end submissions tab -->
 
       <!-- ============ ADMIN TAB ============ -->
       <div class="tab-panel" id="tab-admin" style="display:none;">
         <div class="header-row">
           <h1>Admin</h1>
-          <button id="logoutBtn3">Log out</button>
         </div>
         <p style="color:#777;">Admin tab content coming later (Stage 4).</p>
       </div>
@@ -563,6 +516,7 @@
 
 <script>
   let allRows = [];
+  let allDealers = [];
 
   // ---------- View switching ----------
   function showLogin() {
@@ -575,7 +529,7 @@
   function showDashboard() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
-    document.body.classList.add('has-sidebar');   
+    document.body.classList.add('has-sidebar');
     document.title = 'Dashboard';
   }
 
@@ -586,7 +540,10 @@
       if (res.ok) {
         showDashboard();
         const data = await res.json();
-        renderSubmissions(data);
+        allRows = data;
+        await loadDealers();
+        applyFilters();
+        renderSummaryTable();
         setInterval(loadSubmissions, 5000);
       } else {
         showLogin();
@@ -619,6 +576,7 @@
 
       if (res.ok) {
         showDashboard();
+        await loadDealers();
         loadSubmissions();
         setInterval(loadSubmissions, 5000);
       } else {
@@ -633,74 +591,271 @@
   });
 
   // ---------- Logout ----------
-async function handleLogout() {
-  await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
-  showLogin();
-}
-document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-document.getElementById('logoutBtn2').addEventListener('click', handleLogout);
-document.getElementById('logoutBtn3').addEventListener('click', handleLogout);
-
-  // ---------- Dashboard data loading ----------
-async function loadSubmissions() {
-  const res = await fetch('/api/submissions', { credentials: 'same-origin' });
-  if (!res.ok) {
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
     showLogin();
-    return;
   }
-  const data = await res.json();
-  allRows = data;
-  applyFilters();
-}
+  document.getElementById('sidebarLogoutBtn').addEventListener('click', handleLogout);
 
-function applyFilters() {
-  const searchTerm = document.getElementById('pboSearch').value.trim().toLowerCase();
-  let filtered = allRows;
+  // ---------- Sidebar: toggle ----------
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('expanded');
+  });
 
-  if (searchTerm) {
-    filtered = filtered.filter(row =>
-      row.pbo_reference.toLowerCase().includes(searchTerm)
-    );
+  // ---------- Sidebar: tab switching ----------
+  const tabTitles = { home: 'Home', submissions: 'Submissions', admin: 'Admin' };
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-panel').forEach(panel => { panel.style.display = 'none'; });
+    document.getElementById(`tab-${tabName}`).style.display = 'block';
+    document.querySelectorAll('.sidebar__item[data-tab]').forEach(item => {
+      item.classList.toggle('active', item.dataset.tab === tabName);
+    });
+    document.title = tabTitles[tabName] || 'Dashboard';
+    if (tabName === 'home') renderSummaryTable();
   }
 
-  if (selectedDealers.size > 0) {
-    filtered = filtered.filter(row => selectedDealers.has(row.dealer_name));
+  document.querySelectorAll('.sidebar__item[data-tab]').forEach(item => {
+    item.addEventListener('click', () => switchTab(item.dataset.tab));
+  });
+
+  // ---------- Dealers (shared by Home + Submissions filters) ----------
+  async function loadDealers() {
+    const res = await fetch('/api/dealers', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    allDealers = await res.json();
+    populateDealerCheckboxes('dealerCheckboxList', selectedDealersSubmissions, () => { updateDealerLabel('dealerDropdownLabel', selectedDealersSubmissions); applyFilters(); });
+    populateDealerCheckboxes('homeDealerCheckboxList', selectedDealersHome, () => { updateDealerLabel('homeDealerDropdownLabel', selectedDealersHome); renderSummaryTable(); });
   }
 
-  if (startDateEl.value && endDateEl.value) {
-    filtered = filtered.filter(row => {
-      const rowDate = row.created_at.split(' ')[0]; // "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DD"
-      return rowDate >= startDateEl.value && rowDate <= endDateEl.value;
+  function populateDealerCheckboxes(containerId, selectedSet, onChange) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = allDealers.map(d => `
+      <label style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; cursor:pointer;">
+        <input type="checkbox" class="dealerCheckbox-${containerId}" value="${escapeHtml(d.dealer_name)}">
+        ${escapeHtml(d.dealer_name)}
+      </label>
+    `).join('');
+    container.querySelectorAll(`.dealerCheckbox-${containerId}`).forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) selectedSet.add(cb.value); else selectedSet.delete(cb.value);
+        onChange();
+      });
     });
   }
 
-  renderSubmissions(filtered, false); // false = don't overwrite allRows
-}
+  function updateDealerLabel(labelId, selectedSet) {
+    const label = document.getElementById(labelId);
+    if (selectedSet.size === 0) label.textContent = 'Filter by dealer';
+    else if (selectedSet.size === 1) label.textContent = [...selectedSet][0];
+    else label.textContent = `${selectedSet.size} dealers selected`;
+  }
 
-function renderSubmissions(data, updateAllRows = true) {
-  const previouslyChecked = new Set(
-    Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
-  );
-  if (updateAllRows) allRows = data;
+  function setupDropdownToggle(triggerId, panelId) {
+    const trigger = document.getElementById(triggerId);
+    const panel = document.getElementById(panelId);
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.toggle('open');
+      trigger.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && e.target !== trigger) {
+        panel.classList.remove('open');
+        trigger.classList.remove('active');
+      }
+    });
+  }
 
+  // ================= SUBMISSIONS TAB =================
+  let selectedDealersSubmissions = new Set();
+
+  setupDropdownToggle('dealerDropdownTrigger', 'dealerDropdownPanel');
+  document.getElementById('dealerDropdownClear').addEventListener('click', () => {
+    selectedDealersSubmissions.clear();
+    document.querySelectorAll('.dealerCheckbox-dealerCheckboxList').forEach(cb => cb.checked = false);
+    updateDealerLabel('dealerDropdownLabel', selectedDealersSubmissions);
+    applyFilters();
+  });
+
+  setupDropdownToggle('dateDropdownTrigger', 'dateDropdownPanel');
+  const startDateEl = document.getElementById('startDate');
+  const endDateEl = document.getElementById('endDate');
+  const exportBtn = document.getElementById('exportBtn');
+  const dropdownLabel = document.getElementById('dateDropdownLabel');
+  const dropdownClear = document.getElementById('dateDropdownClear');
+
+  function toLocalDateString(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function applyPreset(preset, startEl, endEl, onChangeFn) {
+    const today = new Date();
+    let from = new Date();
+    let to = new Date();
+    if (preset === 'today') from = today;
+    else if (preset === '7') from = new Date(new Date().setDate(today.getDate() - 7));
+    else if (preset === '30') from = new Date(new Date().setDate(today.getDate() - 30));
+    else if (preset === '3m') from = new Date(new Date().setMonth(today.getMonth() - 3));
+    else if (preset === '6m') from = new Date(new Date().setMonth(today.getMonth() - 6));
+    else if (preset === 'mtd' || preset === 'thismonth') from = new Date(today.getFullYear(), today.getMonth(), 1);
+    else if (preset === 'ytd') from = new Date(today.getFullYear(), 0, 1);
+    else if (preset === 'thisweek') {
+      const day = today.getDay();
+      const diff = day === 0 ? 6 : day - 1;
+      from = new Date(new Date().setDate(today.getDate() - diff));
+    }
+    startEl.value = toLocalDateString(from);
+    endEl.value = toLocalDateString(to);
+    onChangeFn();
+  }
+
+  document.querySelectorAll('#dateDropdownPanel .date-dropdown__preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyPreset(btn.dataset.preset, startDateEl, endDateEl, onDateChange);
+      document.getElementById('dateDropdownPanel').classList.remove('open');
+      document.getElementById('dateDropdownTrigger').classList.remove('active');
+    });
+  });
+
+  dropdownClear.addEventListener('click', () => {
+    startDateEl.value = '';
+    endDateEl.value = '';
+    onDateChange();
+  });
+
+  function updateDropdownLabel() {
+    if (startDateEl.value && endDateEl.value) dropdownLabel.textContent = `${startDateEl.value} to ${endDateEl.value}`;
+    else dropdownLabel.textContent = 'Select date range';
+  }
+
+  function onCheckboxChange() {
+    const anyChecked = document.querySelectorAll('.rowCheck:checked').length > 0;
+    if (anyChecked) {
+      startDateEl.value = '';
+      endDateEl.value = '';
+      startDateEl.disabled = true;
+      endDateEl.disabled = true;
+    } else {
+      startDateEl.disabled = false;
+      endDateEl.disabled = false;
+    }
+    updateExportState();
+  }
+
+  function onDateChange() {
+    const anyDateFilled = startDateEl.value || endDateEl.value;
+    if (anyDateFilled) {
+      document.querySelectorAll('.rowCheck:checked').forEach(cb => cb.checked = false);
+      document.getElementById('selectAll').checked = false;
+    }
+    updateExportState();
+    updateDropdownLabel();
+    applyFilters();
+  }
+
+  startDateEl.addEventListener('change', onDateChange);
+  endDateEl.addEventListener('change', onDateChange);
+
+  function updateExportState() {
+    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
+    const hasRange = startDateEl.value && endDateEl.value;
+    exportBtn.disabled = checkedCount === 0 && !hasRange;
+  }
+
+  document.getElementById('selectAll').addEventListener('change', (e) => {
+    document.querySelectorAll('.rowCheck').forEach(cb => cb.checked = e.target.checked);
+    onCheckboxChange();
+  });
+
+  exportBtn.addEventListener('click', async () => {
+    if (exportBtn.dataset.status !== 'idle') return;
+    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
+    let body;
+    if (checkedCount > 0) {
+      const ids = Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => parseInt(cb.dataset.id));
+      body = { ids };
+    } else {
+      body = { startDate: startDateEl.value, endDate: endDateEl.value };
+    }
+    const msg = document.getElementById('exportMsg');
+    msg.textContent = '';
+    exportBtn.dataset.status = 'loading';
+    try {
+      const res = await fetch('/api/submissions/export', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        msg.textContent = err.error || 'Export failed.';
+        exportBtn.dataset.status = 'idle';
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'submissions_export.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      exportBtn.dataset.status = 'success';
+      setTimeout(() => { exportBtn.dataset.status = 'idle'; }, 1200);
+    } catch (err) {
+      msg.textContent = 'Export failed.';
+      exportBtn.dataset.status = 'idle';
+    }
+  });
+
+  document.getElementById('pboSearch').addEventListener('input', applyFilters);
+
+  function applyFilters() {
+    const searchTerm = document.getElementById('pboSearch').value.trim().toLowerCase();
+    let filtered = allRows;
+    if (searchTerm) filtered = filtered.filter(row => row.pbo_reference.toLowerCase().includes(searchTerm));
+    if (selectedDealersSubmissions.size > 0) filtered = filtered.filter(row => selectedDealersSubmissions.has(row.dealer_name));
+    if (startDateEl.value && endDateEl.value) {
+      filtered = filtered.filter(row => {
+        const rowDate = row.created_at.split(' ')[0];
+        return rowDate >= startDateEl.value && rowDate <= endDateEl.value;
+      });
+    }
+    renderSubmissions(filtered);
+  }
+
+  async function loadSubmissions() {
+    const res = await fetch('/api/submissions', { credentials: 'same-origin' });
+    if (!res.ok) { showLogin(); return; }
+    const data = await res.json();
+    allRows = data;
+    applyFilters();
+    renderSummaryTable();
+  }
+
+  function renderSubmissions(data) {
+    const previouslyChecked = new Set(
+      Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
+    );
     const tbody = document.getElementById('tbody');
     const empty = document.getElementById('empty');
     tbody.innerHTML = '';
 
-    if (data.length === 0) {
-      empty.style.display = 'block';
-      return;
-    }
+    if (data.length === 0) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
 
     data.forEach(row => {
       const tr = document.createElement('tr');
       if (row.needs_review) tr.className = 'review-flag';
-
       const reviewBadge = row.needs_review
         ? `<div class="review-badge">⚠ NEEDS REVIEW</div><div style="font-size:11px;color:#a05a00;">${escapeHtml(row.review_reason || '')}</div>`
         : '';
-
       tr.innerHTML = `
         <td>
           <label class="ui-checkbox">
@@ -730,17 +885,16 @@ function renderSubmissions(data, updateAllRows = true) {
         <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
         <td class="status-${row.status.replace(/\s+/g, '')}">${row.status}</td>
         <td>${row.created_at}</td>
-	<td>
-	  <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Posted in SAP</button>
+        <td>
+          <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Posted in SAP</button>
           <button class="action-btn btn-rejected" onclick="updateStatus(${row.id}, 'Rejected')">Rejected</button>
           <hr class="action-divider">
           <button class="action-btn btn-note" onclick="toggleNoteBox(${row.id})">Add Note</button>
-	  <div class="note-box" id="noteBox-${row.id}" style="display:none;">
-	    <textarea class="note-textarea" id="noteText-${row.id}" placeholder="Type note..."></textarea>
-	    <button class="action-btn btn-note-send" onclick="sendNote(${row.id})">Send Note</button>
-	  </div>
-	</td>
-
+          <div class="note-box" id="noteBox-${row.id}" style="display:none;">
+            <textarea class="note-textarea" id="noteText-${row.id}" placeholder="Type note..."></textarea>
+            <button class="action-btn btn-note-send" onclick="sendNote(${row.id})">Send Note</button>
+          </div>
+        </td>
       `;
       tbody.appendChild(tr);
     });
@@ -749,256 +903,35 @@ function renderSubmissions(data, updateAllRows = true) {
     updateExportState();
   }
 
-  const startDateEl = document.getElementById('startDate');
-  const endDateEl = document.getElementById('endDate');
-  const exportBtn = document.getElementById('exportBtn');
-  const dropdownTrigger = document.getElementById('dateDropdownTrigger');
-  const dropdownPanel = document.getElementById('dateDropdownPanel');
-  const dropdownLabel = document.getElementById('dateDropdownLabel');
-  const dropdownClear = document.getElementById('dateDropdownClear');
-
-  dropdownTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownPanel.classList.toggle('open');
-    dropdownTrigger.classList.toggle('active');
-  });
- 
-// ---------- Dealer filter ----------
-let selectedDealers = new Set();
-
-const dealerDropdownTrigger = document.getElementById('dealerDropdownTrigger');
-const dealerDropdownPanel = document.getElementById('dealerDropdownPanel');
-const dealerDropdownLabel = document.getElementById('dealerDropdownLabel');
-const dealerDropdownClear = document.getElementById('dealerDropdownClear');
-const dealerCheckboxList = document.getElementById('dealerCheckboxList');
-
-dealerDropdownTrigger.addEventListener('click', (e) => {
-  e.stopPropagation();
-  dealerDropdownPanel.classList.toggle('open');
-  dealerDropdownTrigger.classList.toggle('active');
-});
-
-document.addEventListener('click', (e) => {
-  if (!dealerDropdownPanel.contains(e.target) && e.target !== dealerDropdownTrigger) {
-    dealerDropdownPanel.classList.remove('open');
-    dealerDropdownTrigger.classList.remove('active');
-  }
-});
-
-async function loadDealerList() {
-  const res = await fetch('/api/dealers', { credentials: 'same-origin' });
-  if (!res.ok) return;
-  const dealers = await res.json();
-  dealerCheckboxList.innerHTML = dealers.map(d => `
-    <label style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; cursor:pointer;">
-      <input type="checkbox" class="dealerCheckbox" value="${escapeHtml(d.dealer_name)}">
-      ${escapeHtml(d.dealer_name)}
-    </label>
-  `).join('');
-
-  document.querySelectorAll('.dealerCheckbox').forEach(cb => {
-    cb.addEventListener('change', () => {
-      if (cb.checked) {
-        selectedDealers.add(cb.value);
-      } else {
-        selectedDealers.delete(cb.value);
-      }
-      updateDealerDropdownLabel();
-      applyFilters();
+  async function updateStatus(id, status) {
+    await fetch(`/api/submissions/${id}/status`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
     });
-  });
-}
-
-function updateDealerDropdownLabel() {
-  if (selectedDealers.size === 0) {
-    dealerDropdownLabel.textContent = 'Filter by dealer';
-  } else if (selectedDealers.size === 1) {
-    dealerDropdownLabel.textContent = [...selectedDealers][0];
-  } else {
-    dealerDropdownLabel.textContent = `${selectedDealers.size} dealers selected`;
-  }
-}
-
-dealerDropdownClear.addEventListener('click', () => {
-  selectedDealers.clear();
-  document.querySelectorAll('.dealerCheckbox').forEach(cb => cb.checked = false);
-  updateDealerDropdownLabel();
-  applyFilters();
-});
-
-  document.addEventListener('click', (e) => {
-    if (!dropdownPanel.contains(e.target) && e.target !== dropdownTrigger) {
-      dropdownPanel.classList.remove('open');
-      dropdownTrigger.classList.remove('active');
-    }
-  });
-
-  function toLocalDateString(d) {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    loadSubmissions();
   }
 
-  function applyPreset(preset) {
-    const today = new Date();
-    let from = new Date();
-    let to = new Date();
-
-    if (preset === 'today') {
-      from = today;
-    } else if (preset === '7') {
-      from = new Date(new Date().setDate(today.getDate() - 7));
-    } else if (preset === '30') {
-      from = new Date(new Date().setDate(today.getDate() - 30));
-    } else if (preset === '3m') {
-      from = new Date(new Date().setMonth(today.getMonth() - 3));
-    } else if (preset === '6m') {
-      from = new Date(new Date().setMonth(today.getMonth() - 6));
-    } else if (preset === 'mtd') {
-      from = new Date(today.getFullYear(), today.getMonth(), 1);
-    } else if (preset === 'ytd') {
-      from = new Date(today.getFullYear(), 0, 1);
-    }
-
-    startDateEl.value = toLocalDateString(from);
-    endDateEl.value = toLocalDateString(to);
-    onDateChange();
-    updateDropdownLabel();
-    dropdownPanel.classList.remove('open');
-    dropdownTrigger.classList.remove('active');
+  function toggleNoteBox(id) {
+    const box = document.getElementById(`noteBox-${id}`);
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
   }
 
-  document.querySelectorAll('.date-dropdown__preset').forEach(btn => {
-    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
-  });
-
-  dropdownClear.addEventListener('click', () => {
-    startDateEl.value = '';
-    endDateEl.value = '';
-    onDateChange();
-    updateDropdownLabel();
-  });
-
-  function updateDropdownLabel() {
-    if (startDateEl.value && endDateEl.value) {
-      dropdownLabel.textContent = `${startDateEl.value} to ${endDateEl.value}`;
-    } else {
-      dropdownLabel.textContent = 'Select date range';
-    }
+  async function sendNote(id) {
+    const textarea = document.getElementById(`noteText-${id}`);
+    const note = textarea.value.trim();
+    if (!note) { alert('Please type a note before sending.'); return; }
+    await fetch(`/api/submissions/${id}/note`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note })
+    });
+    textarea.value = '';
+    document.getElementById(`noteBox-${id}`).style.display = 'none';
+    loadSubmissions();
   }
-
-  function onCheckboxChange() {
-    const anyChecked = document.querySelectorAll('.rowCheck:checked').length > 0;
-    if (anyChecked) {
-      startDateEl.value = '';
-      endDateEl.value = '';
-      startDateEl.disabled = true;
-      endDateEl.disabled = true;
-    } else {
-      startDateEl.disabled = false;
-      endDateEl.disabled = false;
-    }
-    updateExportState();
-  }
-
-function onDateChange() {
-  const anyDateFilled = startDateEl.value || endDateEl.value;
-  if (anyDateFilled) {
-    document.querySelectorAll('.rowCheck:checked').forEach(cb => cb.checked = false);
-    document.getElementById('selectAll').checked = false;
-  }
-  updateExportState();
-  updateDropdownLabel();
-  applyFilters();
-}
-
-  startDateEl.addEventListener('change', onDateChange);
-  endDateEl.addEventListener('change', onDateChange);
-  document.getElementById('pboSearch').addEventListener('input', applyFilters);
-
-  function updateExportState() {
-    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
-    const hasRange = startDateEl.value && endDateEl.value;
-    exportBtn.disabled = checkedCount === 0 && !hasRange;
-  }
-
-  document.getElementById('selectAll').addEventListener('change', (e) => {
-    document.querySelectorAll('.rowCheck').forEach(cb => cb.checked = e.target.checked);
-    onCheckboxChange();
-  });
-
-  exportBtn.addEventListener('click', async () => {
-    if (exportBtn.dataset.status !== 'idle') return;
-
-    const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
-    let body;
-    if (checkedCount > 0) {
-      const ids = Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => parseInt(cb.dataset.id));
-      body = { ids };
-    } else {
-      body = { startDate: startDateEl.value, endDate: endDateEl.value };
-    }
-
-    const msg = document.getElementById('exportMsg');
-    msg.textContent = '';
-    exportBtn.dataset.status = 'loading';
-
-    try {
-      const res = await fetch('/api/submissions/export', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        msg.textContent = err.error || 'Export failed.';
-        exportBtn.dataset.status = 'idle';
-        return;
-      }
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'submissions_export.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      exportBtn.dataset.status = 'success';
-      setTimeout(() => {
-        exportBtn.dataset.status = 'idle';
-      }, 1200);
-    } catch (err) {
-      msg.textContent = 'Export failed.';
-      exportBtn.dataset.status = 'idle';
-    }
-  });
-
-function toggleNoteBox(id) {
-  const box = document.getElementById(`noteBox-${id}`);
-  box.style.display = box.style.display === 'none' ? 'block' : 'none';
-}
-
-async function sendNote(id) {
-  const textarea = document.getElementById(`noteText-${id}`);
-  const note = textarea.value.trim();
-  if (!note) {
-    alert('Please type a note before sending.');
-    return;
-  }
-  await fetch(`/api/submissions/${id}/note`, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ note })
-  });
-  textarea.value = '';
-  document.getElementById(`noteBox-${id}`).style.display = 'none';
-  loadSubmissions();
-}
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -1006,37 +939,90 @@ async function sendNote(id) {
     return div.innerHTML;
   }
 
+  // ================= HOME TAB =================
+  let selectedDealersHome = new Set();
+
+  setupDropdownToggle('homeDealerDropdownTrigger', 'homeDealerDropdownPanel');
+  document.getElementById('homeDealerDropdownClear').addEventListener('click', () => {
+    selectedDealersHome.clear();
+    document.querySelectorAll('.dealerCheckbox-homeDealerCheckboxList').forEach(cb => cb.checked = false);
+    updateDealerLabel('homeDealerDropdownLabel', selectedDealersHome);
+    renderSummaryTable();
+  });
+
+  setupDropdownToggle('homeDateDropdownTrigger', 'homeDateDropdownPanel');
+  const homeStartDateEl = document.getElementById('homeStartDate');
+  const homeEndDateEl = document.getElementById('homeEndDate');
+  const homeDropdownLabel = document.getElementById('homeDateDropdownLabel');
+
+  function updateHomeDropdownLabel() {
+    if (homeStartDateEl.value && homeEndDateEl.value) homeDropdownLabel.textContent = `${homeStartDateEl.value} to ${homeEndDateEl.value}`;
+    else homeDropdownLabel.textContent = 'Select date range';
+  }
+
+  document.querySelectorAll('#homeDateDropdownPanel .date-dropdown__preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyPreset(btn.dataset.preset, homeStartDateEl, homeEndDateEl, () => { updateHomeDropdownLabel(); renderSummaryTable(); });
+      document.getElementById('homeDateDropdownPanel').classList.remove('open');
+      document.getElementById('homeDateDropdownTrigger').classList.remove('active');
+    });
+  });
+
+  document.getElementById('homeDateDropdownClear').addEventListener('click', () => {
+    homeStartDateEl.value = '';
+    homeEndDateEl.value = '';
+    updateHomeDropdownLabel();
+    renderSummaryTable();
+  });
+
+  homeStartDateEl.addEventListener('change', () => { updateHomeDropdownLabel(); renderSummaryTable(); });
+  homeEndDateEl.addEventListener('change', () => { updateHomeDropdownLabel(); renderSummaryTable(); });
+
+  function renderSummaryTable() {
+    let filtered = allRows;
+    if (selectedDealersHome.size > 0) filtered = filtered.filter(row => selectedDealersHome.has(row.dealer_name));
+    if (homeStartDateEl.value && homeEndDateEl.value) {
+      filtered = filtered.filter(row => {
+        const rowDate = row.created_at.split(' ')[0];
+        return rowDate >= homeStartDateEl.value && rowDate <= homeEndDateEl.value;
+      });
+    }
+
+    const tbody = document.getElementById('summaryTbody');
+    let grandReceived = 0, grandPosted = 0, grandRejected = 0;
+
+    const dealersToShow = allDealers;
+
+    tbody.innerHTML = dealersToShow.map(dealer => {
+      const dealerRows = filtered.filter(row => row.dealer_name === dealer.dealer_name);
+      const received = dealerRows.filter(r => r.status === 'Received').length;
+      const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
+      const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
+      const total = dealerRows.length;
+
+      grandReceived += received;
+      grandPosted += posted;
+      grandRejected += rejected;
+
+      return `
+        <tr>
+          <td>${escapeHtml(dealer.dealer_name)}</td>
+          <td class="count-received">${received}</td>
+          <td class="count-posted">${posted}</td>
+          <td class="count-rejected">${rejected}</td>
+          <td>${total}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('totalReceived').textContent = grandReceived;
+    document.getElementById('totalPosted').textContent = grandPosted;
+    document.getElementById('totalRejected').textContent = grandRejected;
+    document.getElementById('totalAll').textContent = grandReceived + grandPosted + grandRejected;
+  }
+
   // ---------- Kick things off ----------
   checkAuthAndInit();
-// ---------- Sidebar: hamburger toggle ----------
-document.getElementById('sidebarToggle').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('expanded');
-});
-
-// ---------- Sidebar: tab switching ----------
-const tabTitles = {
-  home: 'Home',
-  submissions: 'Submissions',
-  admin: 'Admin'
-};
-
-function switchTab(tabName) {
-  document.querySelectorAll('.tab-panel').forEach(panel => {
-    panel.style.display = 'none';
-  });
-  document.getElementById(`tab-${tabName}`).style.display = 'block';
-
-  document.querySelectorAll('.sidebar__item').forEach(item => {
-    item.classList.toggle('active', item.dataset.tab === tabName);
-  });
-
-  document.title = tabTitles[tabName] || 'Dashboard';
-}
-
-document.querySelectorAll('.sidebar__item').forEach(item => {
-  item.addEventListener('click', () => switchTab(item.dataset.tab));
-});
-  loadDealerList();
 </script>
 </body>
 </html>

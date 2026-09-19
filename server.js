@@ -290,6 +290,14 @@ app.post('/api/submissions/:id/note', financeAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// --- Finance-facing: get notes history for a submission ---
+app.get('/api/submissions/:id/notes', financeAuth, (req, res) => {
+  const notes = db.prepare(`
+    SELECT * FROM submission_notes WHERE submission_id = ? ORDER BY created_at DESC
+  `).all(req.params.id);
+  res.json(notes);
+});
+
 // --- Finance-facing: export selected submissions to Excel ---
 app.post('/api/submissions/export', financeAuth, (req, res) => {
   try {
