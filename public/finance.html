@@ -473,6 +473,50 @@
   @media (max-width: 900px) { .main-content { padding: 24px 20px 40px; } .sidebar { width: 60px; } .sidebar.expanded { width: 208px; } .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } th, td { padding: 12px; } #table { display: block; overflow-x: auto; } }
   @media (max-width: 640px) { #loginView { padding: 18px; } .login-card { padding: 30px 24px; } .app-shell { display: block; } .sidebar { position: fixed; bottom: 0; top: auto; width: 100%; height: 62px; padding: 6px 10px; display: flex; flex-direction: row; background: var(--navy); box-shadow: 0 -4px 18px rgba(16,24,40,.12); } .sidebar::before, .sidebar__toggle, .sidebar__bottom { display: none; } .sidebar__nav { flex: 1; flex-direction: row; justify-content: space-around; margin: 0; } .sidebar__item { width: auto; min-height: 48px; padding: 8px 14px; box-shadow: none !important; } .sidebar__item.active { box-shadow: inset 0 -3px 0 var(--brand) !important; } .sidebar__label { display: none; } .main-content { padding: 24px 14px 84px; } .header-row { margin-bottom: 18px; } .header-row h1 { font-size: 23px; } .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .stat-card { min-height: 96px; padding: 14px; } .stat-card__value { font-size: 25px; } .export-bar { align-items: stretch; } .pbo-search-input { width: 100%; } .date-dropdown { flex: 1; } .date-dropdown__trigger { width: 100%; justify-content: space-between; } .export-toggle { margin-left: auto; } #summaryTable { display: block; overflow-x: auto; } .portal-toast { right: 18px; bottom: 78px; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+  /* --- Admin tab --- */
+  .admin-section { margin-top: 28px; }
+  .admin-section__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .admin-section__header h2 { font-size: 16px; font-weight: 750; color: var(--navy); letter-spacing: -.02em; margin: 0; }
+  #dealersTable, #usersTable { border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); table-layout: fixed; width: 100%; overflow: hidden; }
+  .admin-phone-tag {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; margin: 2px 3px 2px 0;
+    border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-size: 11px; font-weight: 650;
+  }
+  .admin-phone-empty { color: var(--subtle); font-size: 12px; font-style: italic; }
+  .admin-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .admin-row-actions button.action-btn { width: auto; display: inline-block; margin: 0; padding: 6px 10px; }
+  .btn-manage { background: var(--blue); }
+  .btn-manage:hover { background: #1f56c3; }
+  .btn-remove { background: var(--danger); }
+  .btn-remove:hover { background: #9f2020; }
+  .btn-reset { background: #6b7280; }
+  .btn-reset:hover { background: #4b5563; }
+
+  .admin-modal-overlay {
+    position: fixed; inset: 0; background: rgba(11, 37, 69, 0.45);
+    display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px;
+  }
+  .admin-modal {
+    background: #fff; border-radius: 14px; width: 420px; max-width: 92vw; max-height: 85vh; overflow-y: auto;
+    position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.25); padding: 26px;
+  }
+  .admin-modal h3 { font-size: 17px; color: var(--navy); margin: 0 0 18px 0; padding-right: 26px; }
+  .admin-form-field { margin-bottom: 14px; }
+  .admin-form-field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .035em; margin-bottom: 5px; }
+  .admin-form-field input {
+    width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--line-strong);
+    border-radius: 7px; font-size: 13px; color: var(--ink); background: var(--surface-muted);
+  }
+  .admin-form-field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(40,100,220,.10); background: #fff; }
+  .admin-form-field small { display: block; margin-top: 4px; color: var(--subtle); font-size: 11px; }
+  #saveDealerBtn, #saveUserBtn, #addPhoneBtn, #confirmResetBtn { width: 100%; margin-top: 4px; }
+
+  #phonesList { margin-bottom: 16px; max-height: 160px; overflow-y: auto; }
+  .phone-list-item {
+    display: flex; justify-content: space-between; align-items: center; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 7px; margin-bottom: 6px; font-size: 13px;
+  }
+  .phone-list-item button { border: none; background: none; color: var(--danger); cursor: pointer; font-size: 13px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -714,9 +758,152 @@
         <div class="header-row">
           <h1>Admin</h1>
         </div>
-        <p style="color:#777;">Admin tab content coming later (Stage 4).</p>
+
+        <div class="stat-grid" style="grid-template-columns: repeat(2, minmax(0,1fr));" aria-label="Admin summary">
+          <div class="stat-card"><span class="stat-card__label">Dealers</span><strong class="stat-card__value" id="adminDealerCount">0</strong></div>
+          <div class="stat-card"><span class="stat-card__label">Finance Users</span><strong class="stat-card__value" id="adminUserCount">0</strong></div>
+        </div>
+
+        <!-- ============ MANAGE DEALERS ============ -->
+        <div class="admin-section">
+          <div class="admin-section__header">
+            <h2>Manage Dealers</h2>
+            <button type="button" class="export-toggle" id="addDealerBtn" data-status="idle">
+              <span class="export-toggle__layer" data-layer="idle">+ Add Dealer</span>
+              <span class="export-toggle__layer" data-layer="loading">
+                <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+                  <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+                  <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+              </span>
+              <span class="export-toggle__layer" data-layer="done">Added</span>
+            </button>
+          </div>
+
+          <table id="dealersTable">
+            <thead>
+              <tr>
+                <th style="width:24%;">Dealer Name</th>
+                <th style="width:14%;">SAP Code</th>
+                <th style="width:42%;">Phone Numbers</th>
+                <th style="width:20%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dealersTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- ============ MANAGE FINANCE USERS ============ -->
+        <div class="admin-section">
+          <div class="admin-section__header">
+            <h2>Manage Finance Users</h2>
+            <button type="button" class="export-toggle" id="addUserBtn" data-status="idle">
+              <span class="export-toggle__layer" data-layer="idle">+ Add User</span>
+              <span class="export-toggle__layer" data-layer="loading">
+                <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+                  <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+                  <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+              </span>
+              <span class="export-toggle__layer" data-layer="done">Added</span>
+            </button>
+          </div>
+
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th style="width:20%;">Name</th>
+                <th style="width:16%;">Username</th>
+                <th style="width:24%;">Email</th>
+                <th style="width:16%;">Phone</th>
+                <th style="width:24%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
+
       </div>
 
+      <!-- ============ ADD DEALER MODAL ============ -->
+      <div class="admin-modal-overlay" id="addDealerModal" style="display:none;">
+        <div class="admin-modal">
+          <button class="widget-close" id="closeDealerModal" type="button">✕</button>
+          <h3>Add New Dealer</h3>
+          <div class="admin-form-field">
+            <label>Dealer Name</label>
+            <input type="text" id="newDealerName" placeholder="e.g. MG Downtown">
+          </div>
+          <div class="admin-form-field">
+            <label>SAP Code</label>
+            <input type="text" id="newDealerSapCode" placeholder="e.g. 12000050">
+          </div>
+          <div class="admin-form-field">
+            <label>Phone Number(s)</label>
+            <input type="text" id="newDealerPhones" placeholder="923001234567, 923007654321">
+            <small>Separate multiple numbers with commas</small>
+          </div>
+          <button type="button" class="action-btn btn-posted" id="saveDealerBtn">Save Dealer</button>
+        </div>
+      </div>
+
+      <!-- ============ MANAGE PHONES MODAL ============ -->
+      <div class="admin-modal-overlay" id="managePhonesModal" style="display:none;">
+        <div class="admin-modal">
+          <button class="widget-close" id="closePhonesModal" type="button">✕</button>
+          <h3 id="managePhonesTitle">Manage Phone Numbers</h3>
+          <div id="phonesList"></div>
+          <div class="admin-form-field">
+            <label>Add New Number</label>
+            <input type="text" id="newPhoneInput" placeholder="923001234567">
+          </div>
+          <button type="button" class="action-btn btn-posted" id="addPhoneBtn">Add Number</button>
+        </div>
+      </div>
+
+      <!-- ============ ADD FINANCE USER MODAL ============ -->
+      <div class="admin-modal-overlay" id="addUserModal" style="display:none;">
+        <div class="admin-modal">
+          <button class="widget-close" id="closeUserModal" type="button">✕</button>
+          <h3>Add Finance User</h3>
+          <div class="admin-form-field">
+            <label>Full Name</label>
+            <input type="text" id="newUserName" placeholder="e.g. Ayesha Khan">
+          </div>
+          <div class="admin-form-field">
+            <label>Username</label>
+            <input type="text" id="newUserUsername" placeholder="e.g. ayesha.khan">
+          </div>
+          <div class="admin-form-field">
+            <label>Password</label>
+            <input type="password" id="newUserPassword" placeholder="Temporary password">
+          </div>
+          <div class="admin-form-field">
+            <label>Email</label>
+            <input type="email" id="newUserEmail" placeholder="ayesha@mgpakistan.com">
+          </div>
+          <div class="admin-form-field">
+            <label>Phone (WhatsApp)</label>
+            <input type="text" id="newUserPhone" placeholder="923001234567">
+          </div>
+          <button type="button" class="action-btn btn-posted" id="saveUserBtn">Save User</button>
+        </div>
+      </div>
+
+      <!-- ============ RESET PASSWORD MODAL ============ -->
+      <div class="admin-modal-overlay" id="resetPasswordModal" style="display:none;">
+        <div class="admin-modal">
+          <button class="widget-close" id="closeResetModal" type="button">✕</button>
+          <h3 id="resetPasswordTitle">Reset Password</h3>
+          <div class="admin-form-field">
+            <label>New Password</label>
+            <input type="password" id="resetPasswordInput" placeholder="New temporary password">
+          </div>
+          <button type="button" class="action-btn btn-posted" id="confirmResetBtn">Reset Password</button>
+        </div>
+      </div>
+
+    </main>
     </main>
   </div>
 </div>
@@ -1349,7 +1536,205 @@ document.getElementById('homeExportBtn').addEventListener('click', async () => {
   }
 
   // ---------- Kick things off ----------
-  checkAuthAndInit();
+// ================= ADMIN TAB (mock data for preview) =================
+let mockDealers = [
+  { id: 1, dealer_name: 'MG Capital', sap_code: '12000001', phones: ['923001111111', '923002222222'] },
+  { id: 2, dealer_name: 'MG Lounge', sap_code: '12000003', phones: ['923003333333'] },
+  { id: 3, dealer_name: 'MG City', sap_code: '12000002', phones: [] },
+];
+
+let mockUsers = [
+  { id: 1, name: 'Finance Admin', username: 'finance', email: '', phone: '' },
+];
+
+function renderDealersTable() {
+  document.getElementById('adminDealerCount').textContent = mockDealers.length;
+  document.getElementById('dealersTbody').innerHTML = mockDealers.map(d => {
+    const phonesHtml = d.phones.length > 0
+      ? d.phones.map(p => `<span class="admin-phone-tag">${escapeHtml(p)}</span>`).join('')
+      : `<span class="admin-phone-empty">No numbers on file</span>`;
+    return `
+      <tr>
+        <td>${escapeHtml(d.dealer_name)}</td>
+        <td>${escapeHtml(d.sap_code)}</td>
+        <td>${phonesHtml}</td>
+        <td>
+          <div class="admin-row-actions">
+            <button class="action-btn btn-manage" onclick="openPhonesModal(${d.id})">Manage Numbers</button>
+            <button class="action-btn btn-remove" onclick="removeDealer(${d.id})">Remove</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderUsersTable() {
+  document.getElementById('adminUserCount').textContent = mockUsers.length;
+  document.getElementById('usersTbody').innerHTML = mockUsers.map(u => `
+    <tr>
+      <td>${escapeHtml(u.name)}</td>
+      <td>${escapeHtml(u.username)}</td>
+      <td>${escapeHtml(u.email || '-')}</td>
+      <td>${escapeHtml(u.phone || '-')}</td>
+      <td>
+        <div class="admin-row-actions">
+          <button class="action-btn btn-reset" onclick="openResetModal(${u.id})">Reset Password</button>
+          <button class="action-btn btn-remove" onclick="removeUser(${u.id})">Remove</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('addDealerBtn').addEventListener('click', () => {
+  document.getElementById('newDealerName').value = '';
+  document.getElementById('newDealerSapCode').value = '';
+  document.getElementById('newDealerPhones').value = '';
+  document.getElementById('addDealerModal').style.display = 'flex';
+});
+document.getElementById('closeDealerModal').addEventListener('click', () => {
+  document.getElementById('addDealerModal').style.display = 'none';
+});
+document.getElementById('addDealerModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
+document.getElementById('saveDealerBtn').addEventListener('click', () => {
+  const name = document.getElementById('newDealerName').value.trim();
+  const sap = document.getElementById('newDealerSapCode').value.trim();
+  const phonesRaw = document.getElementById('newDealerPhones').value.trim();
+  if (!name || !sap) { alert('Dealer name and SAP code are required.'); return; }
+  const phones = phonesRaw ? phonesRaw.split(',').map(p => p.trim()).filter(Boolean) : [];
+  mockDealers.push({ id: Date.now(), dealer_name: name, sap_code: sap, phones });
+  renderDealersTable();
+  document.getElementById('addDealerModal').style.display = 'none';
+  showToast(`Dealer "${name}" added.`);
+});
+
+function removeDealer(id) {
+  const dealer = mockDealers.find(d => d.id === id);
+  if (!confirm(`Remove dealer "${dealer.dealer_name}"? This cannot be undone.`)) return;
+  mockDealers = mockDealers.filter(d => d.id !== id);
+  renderDealersTable();
+  showToast(`Dealer "${dealer.dealer_name}" removed.`);
+}
+
+let currentPhonesDealerId = null;
+
+function openPhonesModal(dealerId) {
+  currentPhonesDealerId = dealerId;
+  const dealer = mockDealers.find(d => d.id === dealerId);
+  document.getElementById('managePhonesTitle').textContent = `Manage Numbers — ${dealer.dealer_name}`;
+  renderPhonesList();
+  document.getElementById('newPhoneInput').value = '';
+  document.getElementById('managePhonesModal').style.display = 'flex';
+}
+
+function renderPhonesList() {
+  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+  const list = document.getElementById('phonesList');
+  if (dealer.phones.length === 0) {
+    list.innerHTML = `<div class="admin-phone-empty">No numbers on file yet.</div>`;
+    return;
+  }
+  list.innerHTML = dealer.phones.map(p => `
+    <div class="phone-list-item">
+      <span>${escapeHtml(p)}</span>
+      <button onclick="removePhone('${p}')">Remove</button>
+    </div>
+  `).join('');
+}
+
+function removePhone(phone) {
+  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+  dealer.phones = dealer.phones.filter(p => p !== phone);
+  renderPhonesList();
+  renderDealersTable();
+}
+
+document.getElementById('addPhoneBtn').addEventListener('click', () => {
+  const input = document.getElementById('newPhoneInput');
+  const phone = input.value.trim();
+  if (!phone) { alert('Enter a phone number first.'); return; }
+  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+  if (dealer.phones.includes(phone)) { alert('This number is already on file.'); return; }
+  dealer.phones.push(phone);
+  input.value = '';
+  renderPhonesList();
+  renderDealersTable();
+  showToast('Phone number added.');
+});
+
+document.getElementById('closePhonesModal').addEventListener('click', () => {
+  document.getElementById('managePhonesModal').style.display = 'none';
+});
+document.getElementById('managePhonesModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
+
+document.getElementById('addUserBtn').addEventListener('click', () => {
+  document.getElementById('newUserName').value = '';
+  document.getElementById('newUserUsername').value = '';
+  document.getElementById('newUserPassword').value = '';
+  document.getElementById('newUserEmail').value = '';
+  document.getElementById('newUserPhone').value = '';
+  document.getElementById('addUserModal').style.display = 'flex';
+});
+document.getElementById('closeUserModal').addEventListener('click', () => {
+  document.getElementById('addUserModal').style.display = 'none';
+});
+document.getElementById('addUserModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
+document.getElementById('saveUserBtn').addEventListener('click', () => {
+  const name = document.getElementById('newUserName').value.trim();
+  const username = document.getElementById('newUserUsername').value.trim();
+  const password = document.getElementById('newUserPassword').value;
+  const email = document.getElementById('newUserEmail').value.trim();
+  const phone = document.getElementById('newUserPhone').value.trim();
+  if (!name || !username || !password) { alert('Name, username, and password are required.'); return; }
+  mockUsers.push({ id: Date.now(), name, username, email, phone });
+  renderUsersTable();
+  document.getElementById('addUserModal').style.display = 'none';
+  showToast(`User "${name}" added.`);
+});
+
+function removeUser(id) {
+  if (mockUsers.length <= 1) { alert('Cannot remove the last finance user — at least one must remain.'); return; }
+  const user = mockUsers.find(u => u.id === id);
+  if (!confirm(`Remove user "${user.name}"?`)) return;
+  mockUsers = mockUsers.filter(u => u.id !== id);
+  renderUsersTable();
+  showToast(`User "${user.name}" removed.`);
+}
+
+let currentResetUserId = null;
+
+function openResetModal(userId) {
+  currentResetUserId = userId;
+  const user = mockUsers.find(u => u.id === userId);
+  document.getElementById('resetPasswordTitle').textContent = `Reset Password — ${user.name}`;
+  document.getElementById('resetPasswordInput').value = '';
+  document.getElementById('resetPasswordModal').style.display = 'flex';
+}
+
+document.getElementById('closeResetModal').addEventListener('click', () => {
+  document.getElementById('resetPasswordModal').style.display = 'none';
+});
+document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
+document.getElementById('confirmResetBtn').addEventListener('click', () => {
+  const newPassword = document.getElementById('resetPasswordInput').value;
+  if (!newPassword || newPassword.length < 4) { alert('Enter a password (at least 4 characters).'); return; }
+  const user = mockUsers.find(u => u.id === currentResetUserId);
+  document.getElementById('resetPasswordModal').style.display = 'none';
+  showToast(`Password reset for "${user.name}".`);
+});
+
+renderDealersTable();
+renderUsersTable();  
+checkAuthAndInit();
 </script>
 </body>
 </html>
