@@ -302,7 +302,7 @@ app.get('/api/submissions/:id/notes', financeAuth, (req, res) => {
 app.post('/api/submissions/export', financeAuth, (req, res) => {
   try {
     const XLSX = require('xlsx');
-    const { ids, startDate, endDate } = req.body;
+    const { ids, startDate, endDate, dealers } = req.body;
 
     let rows;
     if (ids && ids.length > 0) {
@@ -314,6 +314,9 @@ app.post('/api/submissions/export', financeAuth, (req, res) => {
         WHERE date(created_at) BETWEEN date(?) AND date(?)
         ORDER BY created_at DESC
       `).all(startDate, endDate);
+      if (dealers && dealers.length > 0) {
+        rows = rows.filter(r => dealers.includes(r.dealer_name));
+      }
     } else {
       return res.status(400).json({ error: 'Select entries or a date range to export.' });
     }

@@ -171,6 +171,22 @@
     align-items: center;
     gap: 6px;
   }
+  .date-nav { display: inline-flex; align-items: center; gap: 4px; }
+  .date-nav__arrow {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .date-nav__arrow:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+  .date-nav.range-mode .date-nav__arrow { display: none; }
   .date-dropdown__trigger:hover { border-color: #1a73e8; }
   .date-dropdown__trigger.active { border-color: #1a73e8; color: #1a73e8; }
   .date-dropdown__panel {
@@ -296,6 +312,167 @@
   .count-received { color: #b8860b; font-weight: bold; }
   .count-posted { color: #1a7e2e; font-weight: bold; }
   .count-rejected { color: #c0392b; font-weight: bold; }
+
+  /* --- Visual refresh: enterprise finance UI --- */
+  :root {
+    --ink: #172235;
+    --muted: #667085;
+    --subtle: #98a2b3;
+    --canvas: #f5f7fb;
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --line: #e6eaf0;
+    --line-strong: #d8dee8;
+    --navy: #102a4c;
+    --navy-deep: #0b1e37;
+    --brand: #cd1316;
+    --brand-dark: #ad1013;
+    --brand-soft: #fff1f1;
+    --blue: #2864dc;
+    --blue-soft: #edf4ff;
+    --success: #167a55;
+    --success-soft: #eaf8f1;
+    --warning: #a6600a;
+    --warning-soft: #fff6e7;
+    --danger: #be2a2a;
+    --danger-soft: #fff0f0;
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .05);
+    --shadow-md: 0 8px 24px rgba(16, 24, 40, .08);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: var(--canvas); -webkit-font-smoothing: antialiased; }
+  button, input, textarea { font: inherit; }
+  button { transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background-color .16s ease, color .16s ease; }
+  button:not(:disabled):active { transform: translateY(1px); }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid rgba(40,100,220,.22); outline-offset: 2px; }
+
+  #loginView { min-height: 100vh; height: auto; padding: 28px; background: radial-gradient(circle at 15% 12%, rgba(205,19,22,.09), transparent 31rem), linear-gradient(135deg, #f8fafc 0%, #edf2f8 100%); }
+  .login-card { position: relative; width: min(100%, 420px); padding: 40px; border: 1px solid rgba(255,255,255,.8); border-radius: 18px; box-shadow: 0 24px 64px rgba(16,24,40,.13), var(--shadow-sm); }
+  .login-card::before { content: ""; display: block; width: 46px; height: 5px; margin: 0 auto 24px; border-radius: 999px; background: var(--brand); }
+  .login-card h1 { font-size: 24px; letter-spacing: -.035em; color: var(--navy); margin-bottom: 8px; }
+  .login-card h1::after { content: "Secure finance operations"; display: block; margin-top: 8px; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+  .floating-field { margin-bottom: 18px; }
+  .floating-field__input { height: 50px; border-color: var(--line-strong); border-radius: 9px; color: var(--ink); font-size: 14px; background: var(--surface); }
+  .floating-field__input:hover { border-color: #b9c2d0; }
+  .floating-field__input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(40,100,220,.12); }
+  .floating-field__label { font-size: 14px; color: var(--muted); }
+  .floating-field__input:focus + .floating-field__label, .floating-field__input:not(:placeholder-shown) + .floating-field__label { color: var(--blue); background: var(--surface); }
+  .login-btn { height: 48px; border-radius: 9px; background: var(--navy); box-shadow: 0 5px 12px rgba(16,42,76,.18); font-size: 14px; letter-spacing: .01em; }
+  .login-btn:hover:not(:disabled) { background: var(--navy-deep); box-shadow: 0 8px 18px rgba(16,42,76,.24); transform: translateY(-1px); }
+  #loginError { min-height: 18px; color: var(--danger); font-size: 12px; font-weight: 600; }
+
+  .app-shell { min-height: 100vh; height: auto; background: var(--canvas); }
+  .sidebar { position: sticky; top: 0; height: 100vh; width: 72px; padding: 12px 8px; background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%); border-right: 1px solid rgba(255,255,255,.06); box-shadow: 4px 0 16px rgba(16,24,40,.04); z-index: 5; }
+  .sidebar.expanded { width: 248px; }
+  .sidebar::before { content: "MG"; width: 38px; height: 38px; margin: 4px auto 18px; display: grid; place-items: center; border-radius: 10px; color: #fff; background: var(--brand); font-size: 13px; font-weight: 800; letter-spacing: -.04em; }
+  .sidebar.expanded::before { margin-left: 10px; }
+  .sidebar__toggle { position: absolute; top: 19px; right: -14px; width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--navy); background: #fff; box-shadow: var(--shadow-sm); }
+  .sidebar__toggle:hover { color: var(--brand); box-shadow: var(--shadow-md); }
+  .sidebar.expanded .sidebar__toggle { justify-content: center; padding-left: 0; }
+  .sidebar__nav { gap: 4px; margin-top: 0; }
+  .sidebar__bottom { gap: 4px; padding-bottom: 4px; }
+  .sidebar__item { min-height: 46px; gap: 13px; border: 0; border-radius: 8px; padding: 10px 12px; color: #aebed3; font-size: 13px; font-weight: 600; }
+  .sidebar__item:hover { color: #fff; background: rgba(255,255,255,.08); }
+  .sidebar__item.active { color: #fff; background: rgba(255,255,255,.13); border-left: 0; box-shadow: inset 3px 0 0 var(--brand); }
+  .sidebar__icon { display: grid; place-items: center; width: 24px; height: 24px; color: currentColor; }
+  .sidebar__icon svg { width: 18px; height: 18px; stroke: currentColor; }
+  .sidebar__label { font-weight: 650; }
+  .sidebar .logout-btn { color: #f2a3a4; }
+  .sidebar .logout-btn:hover { color: #fff; background: rgba(205,19,22,.25); box-shadow: inset 3px 0 0 var(--brand); }
+
+  .main-content { height: auto; min-height: 100vh; padding: 32px clamp(20px, 4vw, 54px) 52px; overflow: visible; }
+  .tab-panel { max-width: 1440px; animation: panel-in .24s ease both; }
+  @keyframes panel-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .header-row { min-height: 64px; margin-bottom: 24px; }
+  .header-row h1 { font-size: 26px; line-height: 1.18; letter-spacing: -.04em; color: var(--navy); }
+  .header-row h1::after { content: "Dealer payment management"; display: block; margin-top: 7px; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+  #tab-home .header-row h1::after { content: "Payment activity across your dealer network"; }
+  #tab-admin .header-row h1::after { content: "Portal administration"; }
+  .stat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
+  .stat-card { position: relative; min-height: 112px; padding: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); transition: transform .16s ease, box-shadow .16s ease; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat-card::after { content: ""; position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--blue); }
+  .stat-card--received::after { background: #d9951d; } .stat-card--posted::after { background: var(--success); } .stat-card--rejected::after { background: var(--danger); }
+  .stat-card__label { display: block; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .045em; text-transform: uppercase; }
+  .stat-card__value { display: block; margin-top: 11px; color: var(--navy); font-size: 30px; font-weight: 760; letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+
+  .export-bar { min-height: 68px; padding: 12px 14px; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); background: rgba(255,255,255,.94); }
+  .pbo-search-input { height: 38px; width: 240px; padding: 8px 12px 8px 35px; border-color: var(--line-strong); border-radius: 8px; color: var(--ink); background: var(--surface-muted) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23667085' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 12px center / 16px no-repeat; }
+  .pbo-search-input:hover { border-color: #b9c2d0; }
+  .pbo-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(40,100,220,.10); background-color: #fff; }
+  .date-dropdown__trigger { min-height: 38px; padding: 8px 12px; border-color: var(--line-strong); border-radius: 8px; color: #344054; font-size: 12px; font-weight: 600; }
+  .date-dropdown__trigger:hover, .date-dropdown__trigger.active { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+  .date-dropdown__panel { min-width: 304px; max-height: min(460px, 72vh); overflow-y: auto; padding: 12px; border-color: var(--line); border-radius: 12px; box-shadow: var(--shadow-md); transform-origin: top left; }
+  .date-dropdown__panel.open { animation: dropdown-in .16s ease both; }
+  @keyframes dropdown-in { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .date-dropdown__presets { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-bottom-color: var(--line); }
+  .date-dropdown__preset { padding: 8px 9px; border: 1px solid transparent; border-radius: 7px; font-size: 12px; font-weight: 650; }
+  .date-dropdown__preset:hover { color: var(--blue); background: var(--blue-soft); }
+  .date-dropdown__custom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 2px; }
+  .date-dropdown__custom label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .035em; }
+  .date-dropdown__custom input[type="date"] { width: 100%; padding: 7px; border-color: var(--line-strong); border-radius: 7px; color: var(--ink); background: var(--surface-muted); }
+  .date-dropdown__clear { padding: 6px 3px; color: var(--danger); font-weight: 650; }
+  .date-dropdown__clear:hover { color: #941d1d; }
+  .export-toggle { min-width: 118px; height: 38px; padding: 0 16px; border-radius: 8px; background: var(--navy); box-shadow: 0 3px 7px rgba(16,42,76,.16); font-size: 12px; }
+  .export-toggle:hover:not(:disabled) { background: var(--navy-deep); box-shadow: 0 6px 12px rgba(16,42,76,.20); transform: translateY(-1px); }
+  .export-toggle:disabled { background: #c5ccd6; color: #fff; }
+  #exportMsg { color: var(--danger); font-size: 12px; font-weight: 600; }
+
+  #summaryTable, #table { border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); table-layout: fixed; width: 100%; }
+  #table { overflow: hidden; }
+  #summaryTable thead th { position: sticky; top: 0; z-index: 5; }  
+  table { background: var(--surface); }
+  th, td { padding: 10px 8px; border-bottom-color: var(--line); color: #344054; font-size: 11px; vertical-align: middle; overflow-wrap: break-word; }
+  th { background: #f8fafc; color: #667085; font-size: 11px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; white-space: nowrap; }
+  tbody tr { transition: background-color .15s ease, box-shadow .15s ease; }
+  tbody tr:hover { background: #f8fbff; box-shadow: inset 3px 0 0 var(--blue); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.review-flag { background: #fffaf1; }
+  tr.review-flag:hover { background: #fff6e5; box-shadow: inset 3px 0 0 #d9951d; }
+  .summary-table td, .summary-table th { padding: 15px 18px; }
+  .summary-table tbody td:first-child { color: var(--navy); font-weight: 700; }
+  .summary-table tr.total-row { color: var(--navy); background: #f7f9fc; }
+  .summary-table tr.total-row td { border-top: 1px solid var(--line-strong); }
+  .count-received { color: var(--warning); } .count-posted { color: var(--success); } .count-rejected { color: var(--danger); }
+  .status-chip { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px; font-size: 11px; line-height: 1; font-weight: 750; white-space: nowrap; }
+  .status-Received { color: var(--warning); background: var(--warning-soft); }
+  .status-PostedinSAP { color: var(--success); background: var(--success-soft); }
+  .status-Rejected { color: var(--danger); background: var(--danger-soft); }
+  .review-badge { padding: 4px 7px; border-radius: 999px; color: var(--warning); background: #fff0cf; font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+  .verification-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 999px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+  .verification-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .verification-chip--verified { color: var(--success); background: var(--success-soft); }
+  .verification-chip--review { color: var(--warning); background: var(--warning-soft); }
+  .extracted { color: var(--muted); font-size: 11px; line-height: 1.7; }
+  .extracted b { color: #475467; font-weight: 700; }
+  a.screenshot-link { display: inline-flex; align-items: center; gap: 5px; color: var(--blue); font-size: 12px; font-weight: 700; text-decoration: none; }
+  a.screenshot-link::before { content: "↗"; font-size: 14px; } a.screenshot-link:hover { color: #174ea6; text-decoration: underline; }
+  button.action-btn { min-height: 30px; padding: 6px 9px; margin: 4px 0; border-radius: 6px; font-size: 11px; font-weight: 700; box-shadow: none; }
+  .btn-posted { background: var(--success); } .btn-posted:hover { background: #126644; }
+  .btn-rejected { background: var(--danger); } .btn-rejected:hover { background: #9f2020; }
+  button.action-btn.btn-note { color: #344054; background: #eef2f6; } button.action-btn.btn-note:hover { background: #e2e8f0; }
+  .btn-note-send { background: var(--blue); } .btn-note-send:hover { background: #1f56c3; }
+  .action-divider { border-top-color: var(--line); margin: 7px 0; }
+  .note-box { padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; animation: note-in .16s ease both; }
+  @keyframes note-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+  .note-textarea { border-color: var(--line-strong); border-radius: 6px; font-size: 11px; } .note-textarea:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px rgba(40,100,220,.1); }
+  #empty { margin-top: 16px; padding: 52px 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius); color: var(--muted); font-size: 13px; font-weight: 600; background: rgba(255,255,255,.65); }
+  #empty::before { content: "No payment submissions found"; display: block; margin-bottom: 7px; color: var(--navy); font-size: 15px; font-weight: 750; }
+  .ui-checkbox__box { width: 18px; height: 18px; border-color: #c5ceda; border-radius: 5px; transition: all .15s ease; }
+  .ui-checkbox:hover .ui-checkbox__box { border-color: var(--blue); }
+  .ui-checkbox__input:checked + .ui-checkbox__box { border-color: var(--blue); background: var(--blue); }
+
+  #tab-admin > p { margin: 0; padding: 36px; border: 1px dashed var(--line-strong); border-radius: var(--radius); color: var(--muted) !important; background: var(--surface); text-align: center; }
+  .portal-toast { position: fixed; right: 24px; bottom: 24px; z-index: 100; display: flex; align-items: center; gap: 9px; max-width: min(370px, calc(100vw - 36px)); padding: 12px 15px; border: 1px solid #b9e5d2; border-radius: 10px; color: #125c40; background: #f0fbf6; box-shadow: var(--shadow-md); font-size: 13px; font-weight: 650; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+  .portal-toast.visible { opacity: 1; transform: translateY(0); }
+  .portal-toast.error { color: #9f2020; background: #fff5f5; border-color: #f2c6c6; }
+  .portal-toast::before { content: "✓"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; background: var(--success); font-size: 11px; }
+  .portal-toast.error::before { content: "!"; background: var(--danger); }
+
+  @media (max-width: 900px) { .main-content { padding: 24px 20px 40px; } .sidebar { width: 60px; } .sidebar.expanded { width: 208px; } .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } th, td { padding: 12px; } #table { display: block; overflow-x: auto; } }
+  @media (max-width: 640px) { #loginView { padding: 18px; } .login-card { padding: 30px 24px; } .app-shell { display: block; } .sidebar { position: fixed; bottom: 0; top: auto; width: 100%; height: 62px; padding: 6px 10px; display: flex; flex-direction: row; background: var(--navy); box-shadow: 0 -4px 18px rgba(16,24,40,.12); } .sidebar::before, .sidebar__toggle, .sidebar__bottom { display: none; } .sidebar__nav { flex: 1; flex-direction: row; justify-content: space-around; margin: 0; } .sidebar__item { width: auto; min-height: 48px; padding: 8px 14px; box-shadow: none !important; } .sidebar__item.active { box-shadow: inset 0 -3px 0 var(--brand) !important; } .sidebar__label { display: none; } .main-content { padding: 24px 14px 84px; } .header-row { margin-bottom: 18px; } .header-row h1 { font-size: 23px; } .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .stat-card { min-height: 96px; padding: 14px; } .stat-card__value { font-size: 25px; } .export-bar { align-items: stretch; } .pbo-search-input { width: 100%; } .date-dropdown { flex: 1; } .date-dropdown__trigger { width: 100%; justify-content: space-between; } .export-toggle { margin-left: auto; } #summaryTable { display: block; overflow-x: auto; } .portal-toast { right: 18px; bottom: 78px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 </style>
 </head>
 <body>
@@ -331,21 +508,21 @@
       </button>
       <div class="sidebar__nav">
         <button class="sidebar__item active" data-tab="home">
-          <span class="sidebar__icon">🏠</span>
+          <span class="sidebar__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/></svg></span>
           <span class="sidebar__label">Home</span>
         </button>
         <button class="sidebar__item" data-tab="submissions">
-          <span class="sidebar__icon">📋</span>
+          <span class="sidebar__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3.5h6v3H9zM8.5 11h7M8.5 15h7"/></svg></span>
           <span class="sidebar__label">Submissions</span>
         </button>
       </div>
       <div class="sidebar__bottom">
         <button class="sidebar__item" data-tab="admin">
-          <span class="sidebar__icon">⚙️</span>
+          <span class="sidebar__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.55V20.3h-3v-.09A1.7 1.7 0 0 0 10.68 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7.02 15 1.7 1.7 0 0 0 5.47 14H5.4v-3h.07A1.7 1.7 0 0 0 7.02 9.97a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 11.71 4.8v-.1h3v.1a1.7 1.7 0 0 0 1.03 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.95 11h.07v3h-.07A1.7 1.7 0 0 0 19.4 15Z"/></svg></span>
           <span class="sidebar__label">Admin</span>
         </button>
         <button class="sidebar__item logout-btn" id="sidebarLogoutBtn">
-          <span class="sidebar__icon">🚪</span>
+          <span class="sidebar__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/></svg></span>
           <span class="sidebar__label">Log out</span>
         </button>
       </div>
@@ -359,6 +536,14 @@
           <h1>Home</h1>
         </div>
 
+        <div class="stat-grid" aria-label="Submission status summary">
+          <div class="stat-card stat-card--received"><span class="stat-card__label">Received</span><strong class="stat-card__value" id="statReceived">0</strong></div>
+          <div class="stat-card stat-card--rejected"><span class="stat-card__label">Rejected</span><strong class="stat-card__value" id="statRejected">0</strong></div>
+          <div class="stat-card stat-card--posted"><span class="stat-card__label">Verified</span><strong class="stat-card__value" id="statVerified">0</strong></div>
+          <div class="stat-card stat-card--posted"><span class="stat-card__label">Posted in SAP</span><strong class="stat-card__value" id="statPosted">0</strong></div>
+          <div class="stat-card"><span class="stat-card__label">Total submissions</span><strong class="stat-card__value" id="statTotal">0</strong></div>
+        </div>
+
         <div class="export-bar">
           <div class="date-dropdown">
             <button type="button" class="date-dropdown__trigger" id="homeDealerDropdownTrigger">
@@ -369,28 +554,49 @@
               <button type="button" class="date-dropdown__clear" id="homeDealerDropdownClear">Clear</button>
             </div>
           </div>
-          <div class="date-dropdown">
-            <button type="button" class="date-dropdown__trigger" id="homeDateDropdownTrigger">
-              <span id="homeDateDropdownLabel">Select date range</span> ▾
-            </button>
-            <div class="date-dropdown__panel" id="homeDateDropdownPanel">
-              <div class="date-dropdown__presets">
-                <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
-                <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
-                <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
-                <button type="button" class="date-dropdown__preset" data-preset="thisweek">This week</button>
-                <button type="button" class="date-dropdown__preset" data-preset="thismonth">This month</button>
-                <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
-                <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
-                <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+          <div class="date-nav" id="homeDateNav">
+            <button type="button" class="date-nav__arrow" id="homeDatePrev" title="Previous day">‹</button>
+            <div class="date-dropdown">
+              <button type="button" class="date-dropdown__trigger" id="homeDateDropdownTrigger">
+                <span id="homeDateDropdownLabel">Today</span> ▾
+              </button>
+              <div class="date-dropdown__panel" id="homeDateDropdownPanel">
+                <div class="date-dropdown__presets">
+                  <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="thisweek">This week</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="thismonth">This month</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+                </div>
+                <div class="date-dropdown__custom">
+                  <label>From <input type="date" id="homeStartDate"></label>
+                  <label>To <input type="date" id="homeEndDate"></label>
+                </div>
+                <button type="button" class="date-dropdown__clear" id="homeDateDropdownClear">Clear</button>
               </div>
-              <div class="date-dropdown__custom">
-                <label>From <input type="date" id="homeStartDate"></label>
-                <label>To <input type="date" id="homeEndDate"></label>
-              </div>
-              <button type="button" class="date-dropdown__clear" id="homeDateDropdownClear">Clear</button>
             </div>
+            <button type="button" class="date-nav__arrow" id="homeDateNext" title="Next day">›</button>
           </div>
+          <span style="flex: 1;"></span>
+          <button type="button" class="export-toggle" data-status="idle" id="homeExportBtn">
+            <span class="export-toggle__layer" data-layer="idle">Export</span>
+            <span class="export-toggle__layer" data-layer="loading">
+              <svg class="export-toggle__spinner" viewBox="0 0 26 26">
+                <circle cx="13" cy="13" r="10" fill="none" stroke-width="3"></circle>
+                <path d="M13 3 A10 10 0 0 1 23 13" fill="none" stroke-width="3" stroke-linecap="round"></path>
+              </svg>
+            </span>
+            <span class="export-toggle__layer" data-layer="done">
+              <svg class="export-toggle__check" viewBox="0 0 16 16">
+                <path fill="currentColor" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+              </svg>
+              Exported
+            </span>
+          </button>
+          <span id="homeExportMsg"></span>
         </div>
 
         <table class="summary-table" id="summaryTable">
@@ -400,6 +606,7 @@
               <th>Received</th>
               <th>Posted in SAP</th>
               <th>Rejected</th>
+              <th>Verified</th>
               <th>Total</th>
             </tr>
           </thead>
@@ -410,6 +617,7 @@
               <td id="totalReceived">0</td>
               <td id="totalPosted">0</td>
               <td id="totalRejected">0</td>
+              <td id="totalVerified">0</td>
               <td id="totalAll">0</td>
             </tr>
           </tfoot>
@@ -472,7 +680,6 @@
           </button>
           <span id="exportMsg"></span>
         </div>
-
         <table id="table">
           <thead>
             <tr>
@@ -486,22 +693,22 @@
                   </span>
                 </label>
               </th>
-              <th>ID</th>
-              <th>Dealer (logged in)</th>
-              <th>PBO Ref</th>
-              <th>Extracted from Screenshot</th>
-              <th>Notes</th>
-              <th>Screenshot</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Actions</th>
+              <th style="width:3%;">ID</th>
+              <th style="width:9%;">Dealer</th>
+              <th style="width:8%;">PBO Ref</th>
+              <th style="width:20%;">Extracted from Screenshot</th>
+              <th style="width:7%;">Verified</th>
+              <th style="width:10%;">Notes</th>
+              <th style="width:7%;">Screenshot</th>
+              <th style="width:8%;">Status</th>
+              <th style="width:8%;">Submitted</th>
+              <th style="width:15%;">Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
         <div id="empty" style="display:none;">No submissions yet.</div>
       </div>
-
       <!-- ============ ADMIN TAB ============ -->
       <div class="tab-panel" id="tab-admin" style="display:none;">
         <div class="header-row">
@@ -514,9 +721,21 @@
   </div>
 </div>
 
+<div class="portal-toast" id="portalToast" role="status" aria-live="polite"></div>
+
 <script>
   let allRows = [];
   let allDealers = [];
+  let toastTimer;
+
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('portalToast');
+    clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('visible');
+    toastTimer = setTimeout(() => toast.classList.remove('visible'), 2800);
+  }
 
   // ---------- View switching ----------
   function showLogin() {
@@ -543,6 +762,7 @@
         allRows = data;
         await loadDealers();
         applyFilters();
+        updateHomeDateNavUI();
         renderSummaryTable();
         setInterval(loadSubmissions, 5000);
       } else {
@@ -807,9 +1027,11 @@
       a.remove();
       window.URL.revokeObjectURL(url);
       exportBtn.dataset.status = 'success';
+      showToast('Export ready for download.');
       setTimeout(() => { exportBtn.dataset.status = 'idle'; }, 1200);
     } catch (err) {
       msg.textContent = 'Export failed.';
+      showToast('Export failed. Please try again.', true);
       exportBtn.dataset.status = 'idle';
     }
   });
@@ -856,6 +1078,10 @@
       const reviewBadge = row.needs_review
         ? `<div class="review-badge">⚠ NEEDS REVIEW</div><div style="font-size:11px;color:#a05a00;">${escapeHtml(row.review_reason || '')}</div>`
         : '';
+      const isVerified = !row.needs_review && String(row.extracted_status || '').toLowerCase() === 'success';
+      const verificationChip = isVerified
+        ? '<span class="verification-chip verification-chip--verified">Verified</span>'
+        : '<span class="verification-chip verification-chip--review">Needs review</span>';
       tr.innerHTML = `
         <td>
           <label class="ui-checkbox">
@@ -881,9 +1107,10 @@
             <b>To:</b> ${escapeHtml(row.extracted_to_account_name || '-')}
           </div>
         </td>
+        <td>${verificationChip}</td>
         <td>${escapeHtml(row.notes || '-')}</td>
         <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
-        <td class="status-${row.status.replace(/\s+/g, '')}">${row.status}</td>
+        <td><span class="status-chip status-${row.status.replace(/\s+/g, '')}">${row.status}</span></td>
         <td>${row.created_at}</td>
         <td>
           <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Posted in SAP</button>
@@ -904,12 +1131,17 @@
   }
 
   async function updateStatus(id, status) {
-    await fetch(`/api/submissions/${id}/status`, {
+    const res = await fetch(`/api/submissions/${id}/status`, {
       method: 'PATCH',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
+    if (!res.ok) {
+      showToast('Status could not be updated. Please try again.', true);
+      return;
+    }
+    showToast(`Submission marked as ${status}.`);
     loadSubmissions();
   }
 
@@ -922,14 +1154,19 @@
     const textarea = document.getElementById(`noteText-${id}`);
     const note = textarea.value.trim();
     if (!note) { alert('Please type a note before sending.'); return; }
-    await fetch(`/api/submissions/${id}/note`, {
+    const res = await fetch(`/api/submissions/${id}/note`, {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note })
     });
+    if (!res.ok) {
+      showToast('Note could not be sent. Please try again.', true);
+      return;
+    }
     textarea.value = '';
     document.getElementById(`noteBox-${id}`).style.display = 'none';
+    showToast('Note sent to the dealer.');
     loadSubmissions();
   }
 
@@ -960,23 +1197,102 @@
     else homeDropdownLabel.textContent = 'Select date range';
   }
 
-  document.querySelectorAll('#homeDateDropdownPanel .date-dropdown__preset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      applyPreset(btn.dataset.preset, homeStartDateEl, homeEndDateEl, () => { updateHomeDropdownLabel(); renderSummaryTable(); });
-      document.getElementById('homeDateDropdownPanel').classList.remove('open');
-      document.getElementById('homeDateDropdownTrigger').classList.remove('active');
+document.querySelectorAll('#homeDateDropdownPanel .date-dropdown__preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    applyPreset(btn.dataset.preset, homeStartDateEl, homeEndDateEl, () => { updateHomeDateNavUI(); renderSummaryTable(); });
+    document.getElementById('homeDateDropdownPanel').classList.remove('open');
+    document.getElementById('homeDateDropdownTrigger').classList.remove('active');
+  });
+});
+
+document.getElementById('homeDateDropdownClear').addEventListener('click', () => {
+  setHomeSingleDate(toLocalDateString(new Date()));
+  document.getElementById('homeDateDropdownPanel').classList.remove('open');
+  document.getElementById('homeDateDropdownTrigger').classList.remove('active');
+});
+
+homeStartDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
+homeEndDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
+
+// ---------- Home date nav (arrows + label) ----------
+let homeSingleDate = toLocalDateString(new Date());
+
+function formatDisplayDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function updateHomeDateNavUI() {
+  const nav = document.getElementById('homeDateNav');
+  const isRange = homeStartDateEl.value && homeEndDateEl.value && homeStartDateEl.value !== homeEndDateEl.value;
+
+  if (isRange) {
+    nav.classList.add('range-mode');
+    homeDropdownLabel.textContent = `${formatDisplayDate(homeStartDateEl.value)} - ${formatDisplayDate(homeEndDateEl.value)}`;
+  } else {
+    nav.classList.remove('range-mode');
+    homeDropdownLabel.textContent = formatDisplayDate(homeSingleDate);
+  }
+}
+
+function setHomeSingleDate(dateStr) {
+  homeSingleDate = dateStr;
+  homeStartDateEl.value = dateStr;
+  homeEndDateEl.value = dateStr;
+  updateHomeDateNavUI();
+  renderSummaryTable();
+}
+
+document.getElementById('homeDatePrev').addEventListener('click', () => {
+  const d = new Date(homeSingleDate + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  setHomeSingleDate(toLocalDateString(d));
+});
+
+document.getElementById('homeDateNext').addEventListener('click', () => {
+  const d = new Date(homeSingleDate + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  setHomeSingleDate(toLocalDateString(d));
+});
+document.getElementById('homeExportBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('homeExportBtn');
+  if (btn.dataset.status !== 'idle') return;
+
+  const msg = document.getElementById('homeExportMsg');
+  msg.textContent = '';
+  btn.dataset.status = 'loading';
+
+  try {
+    const res = await fetch('/api/submissions/export', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startDate: homeStartDateEl.value, endDate: homeEndDateEl.value, dealers: [...selectedDealersHome] })
     });
-  });
-
-  document.getElementById('homeDateDropdownClear').addEventListener('click', () => {
-    homeStartDateEl.value = '';
-    homeEndDateEl.value = '';
-    updateHomeDropdownLabel();
-    renderSummaryTable();
-  });
-
-  homeStartDateEl.addEventListener('change', () => { updateHomeDropdownLabel(); renderSummaryTable(); });
-  homeEndDateEl.addEventListener('change', () => { updateHomeDropdownLabel(); renderSummaryTable(); });
+    if (!res.ok) {
+      const err = await res.json();
+      msg.textContent = err.error || 'Export failed.';
+      btn.dataset.status = 'idle';
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'submissions_export.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    btn.dataset.status = 'success';
+    showToast('Export ready for download.');
+    setTimeout(() => { btn.dataset.status = 'idle'; }, 1200);
+  } catch (err) {
+    msg.textContent = 'Export failed.';
+    showToast('Export failed. Please try again.', true);
+    btn.dataset.status = 'idle';
+  }
+});
 
   function renderSummaryTable() {
     let filtered = allRows;
@@ -989,7 +1305,7 @@
     }
 
     const tbody = document.getElementById('summaryTbody');
-    let grandReceived = 0, grandPosted = 0, grandRejected = 0;
+    let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
 
     const dealersToShow = allDealers;
 
@@ -998,27 +1314,38 @@
       const received = dealerRows.filter(r => r.status === 'Received').length;
       const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
       const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
+      const verified = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success').length;
       const total = dealerRows.length;
 
       grandReceived += received;
       grandPosted += posted;
       grandRejected += rejected;
-
+      grandVerified += verified;
+      const fmt = n => n === 0 ? '-' : n;
       return `
         <tr>
           <td>${escapeHtml(dealer.dealer_name)}</td>
-          <td class="count-received">${received}</td>
-          <td class="count-posted">${posted}</td>
-          <td class="count-rejected">${rejected}</td>
-          <td>${total}</td>
+          <td class="count-received">${fmt(received)}</td>
+          <td class="count-posted">${fmt(posted)}</td>
+          <td class="count-rejected">${fmt(rejected)}</td>
+          <td class="count-posted">${fmt(verified)}</td>
+          <td>${fmt(total)}</td>
         </tr>
       `;
     }).join('');
 
-    document.getElementById('totalReceived').textContent = grandReceived;
-    document.getElementById('totalPosted').textContent = grandPosted;
-    document.getElementById('totalRejected').textContent = grandRejected;
-    document.getElementById('totalAll').textContent = grandReceived + grandPosted + grandRejected;
+    const fmtGrand = n => n === 0 ? '-' : n;
+    document.getElementById('totalReceived').textContent = fmtGrand(grandReceived);
+    document.getElementById('totalPosted').textContent = fmtGrand(grandPosted);
+    document.getElementById('totalRejected').textContent = fmtGrand(grandRejected);
+    document.getElementById('totalVerified').textContent = fmtGrand(grandVerified);
+    document.getElementById('totalAll').textContent = fmtGrand(grandReceived + grandPosted + grandRejected);
+    document.getElementById('statReceived').textContent = fmtGrand(grandReceived);
+    document.getElementById('statPosted').textContent = fmtGrand(grandPosted);
+    document.getElementById('statRejected').textContent = fmtGrand(grandRejected);
+    document.getElementById('statVerified').textContent = fmtGrand(grandVerified);
+    document.getElementById('statTotal').textContent = fmtGrand(grandReceived + grandPosted + grandRejected);
+
   }
 
   // ---------- Kick things off ----------

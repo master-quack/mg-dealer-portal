@@ -3,4 +3,4 @@ node_modules/
 uploads/*
 !uploads/.gitkeep
 dealer-portal.db
-*.pre-session-backup
+*backup*
