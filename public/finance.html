@@ -790,26 +790,30 @@
               <button type="button" class="date-dropdown__clear" id="dealerDropdownClear">Clear</button>
             </div>
           </div>
-          <div class="date-dropdown">
-            <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
-              <span id="dateDropdownLabel">Select date range</span> ▾
-            </button>
-            <div class="date-dropdown__panel" id="dateDropdownPanel">
-              <div class="date-dropdown__presets">
-                <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
-                <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
-                <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
-                <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
-                <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
-                <button type="button" class="date-dropdown__preset" data-preset="mtd">Month to date</button>
-                <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+          <div class="date-nav" id="subDateNav">
+            <button type="button" class="date-nav__arrow" id="subDatePrev" title="Previous day">‹</button>
+            <div class="date-dropdown">
+              <button type="button" class="date-dropdown__trigger" id="dateDropdownTrigger">
+                <span id="dateDropdownLabel">Select date range</span> ▾
+              </button>
+              <div class="date-dropdown__panel" id="dateDropdownPanel">
+                <div class="date-dropdown__presets">
+                  <button type="button" class="date-dropdown__preset" data-preset="today">Today</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="7">Last 7 days</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="30">Last 30 days</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="3m">Last 3 months</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="6m">Last 6 months</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="mtd">Month to date</button>
+                  <button type="button" class="date-dropdown__preset" data-preset="ytd">Year to date</button>
+                </div>
+                <div class="date-dropdown__custom">
+                  <label>From <input type="date" id="startDate"></label>
+                  <label>To <input type="date" id="endDate"></label>
+                </div>
+                <button type="button" class="date-dropdown__clear" id="dateDropdownClear">Clear</button>
               </div>
-              <div class="date-dropdown__custom">
-                <label>From <input type="date" id="startDate"></label>
-                <label>To <input type="date" id="endDate"></label>
-              </div>
-              <button type="button" class="date-dropdown__clear" id="dateDropdownClear">Clear</button>
             </div>
+            <button type="button" class="date-nav__arrow" id="subDateNext" title="Next day">›</button>
           </div>
           <span style="flex: 1;"></span>
           <button type="button" class="export-toggle" data-status="idle" id="exportBtn" disabled>
@@ -1092,7 +1096,7 @@
         const data = await res.json();
         allRows = data;
         await loadDealers();
-        applyFilters();
+        setSubSingleDate(toLocalDateString(new Date()));
         setHomeSingleDate(homeSingleDate);
         renderSummaryTable();
         setInterval(loadSubmissions, 5000);
@@ -1128,6 +1132,7 @@
       if (res.ok) {
         showDashboard();
         await loadDealers();
+        setSubSingleDate(toLocalDateString(new Date()));
         loadSubmissions();
         setInterval(loadSubmissions, 5000);
       } else {
@@ -1267,6 +1272,8 @@
   document.querySelectorAll('#dateDropdownPanel .date-dropdown__preset').forEach(btn => {
     btn.addEventListener('click', () => {
       applyPreset(btn.dataset.preset, startDateEl, endDateEl, onDateChange);
+      if (startDateEl.value === endDateEl.value) subSingleDate = startDateEl.value;
+      document.getElementById('subDateNav').classList.toggle('range-mode', startDateEl.value !== endDateEl.value);
       document.getElementById('dateDropdownPanel').classList.remove('open');
       document.getElementById('dateDropdownTrigger').classList.remove('active');
     });
@@ -1275,12 +1282,22 @@
   dropdownClear.addEventListener('click', () => {
     startDateEl.value = '';
     endDateEl.value = '';
+    document.getElementById('subDateNav').classList.remove('range-mode');
     onDateChange();
   });
 
   function updateDropdownLabel() {
-    if (startDateEl.value && endDateEl.value) dropdownLabel.textContent = `${startDateEl.value} to ${endDateEl.value}`;
-    else dropdownLabel.textContent = 'Select date range';
+    const nav = document.getElementById('subDateNav');
+    if (startDateEl.value && endDateEl.value) {
+      const isRange = startDateEl.value !== endDateEl.value;
+      nav.classList.toggle('range-mode', isRange);
+      dropdownLabel.textContent = isRange
+        ? `${formatDisplayDate(startDateEl.value)} - ${formatDisplayDate(endDateEl.value)}`
+        : formatDisplayDate(startDateEl.value);
+    } else {
+      nav.classList.remove('range-mode');
+      dropdownLabel.textContent = 'Select date range';
+    }
   }
 
   function onCheckboxChange() {
@@ -1311,6 +1328,34 @@
 
   startDateEl.addEventListener('change', onDateChange);
   endDateEl.addEventListener('change', onDateChange);
+
+  // ---------- Submissions date nav arrows ----------
+  let subSingleDate = toLocalDateString(new Date());
+
+  function setSubSingleDate(dateStr) {
+    subSingleDate = dateStr;
+    startDateEl.value = dateStr;
+    endDateEl.value = dateStr;
+    const nav = document.getElementById('subDateNav');
+    const isRange = startDateEl.value !== endDateEl.value;
+    nav.classList.toggle('range-mode', isRange);
+    dropdownLabel.textContent = isRange
+      ? `${formatDisplayDate(startDateEl.value)} - ${formatDisplayDate(endDateEl.value)}`
+      : formatDisplayDate(subSingleDate);
+    onDateChange();
+  }
+
+  document.getElementById('subDatePrev').addEventListener('click', () => {
+    const d = new Date(subSingleDate + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    setSubSingleDate(toLocalDateString(d));
+  });
+
+  document.getElementById('subDateNext').addEventListener('click', () => {
+    const d = new Date(subSingleDate + 'T00:00:00');
+    d.setDate(d.getDate() + 1);
+    setSubSingleDate(toLocalDateString(d));
+  });
 
   function updateExportState() {
     const checkedCount = document.querySelectorAll('.rowCheck:checked').length;
