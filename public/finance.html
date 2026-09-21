@@ -347,17 +347,64 @@
   button:not(:disabled):active { transform: translateY(1px); }
   button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid rgba(40,100,220,.22); outline-offset: 2px; }
 
-  #loginView { min-height: 100vh; height: auto; padding: 28px; background: radial-gradient(circle at 15% 12%, rgba(205,19,22,.09), transparent 31rem), linear-gradient(135deg, #f8fafc 0%, #edf2f8 100%); }
-  .login-card { position: relative; width: min(100%, 420px); padding: 40px; border: 1px solid rgba(255,255,255,.8); border-radius: 18px; box-shadow: 0 24px 64px rgba(16,24,40,.13), var(--shadow-sm); }
-  .login-card::before { content: ""; display: block; width: 46px; height: 5px; margin: 0 auto 24px; border-radius: 999px; background: var(--brand); }
+  /* Change 4: Login screen visual refresh — MG showroom background + watermark + red stripe */
+  #loginView {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 85% 15%, rgba(199, 20, 24, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 15% 85%, rgba(226, 232, 240, 0.8) 0%, transparent 50%),
+      linear-gradient(135deg, #f8fafc 0%, #edf2f7 50%, #e2e8f0 100%);
+  }
+  #loginView::before {
+    content: '';
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    right: -80px;
+    bottom: -120px;
+    background: url('/mg-logo.svg') no-repeat center;
+    background-size: contain;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+  .login-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid var(--brand);
+    border-radius: 8px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 375px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    color: #0f172a;
+  }
   .login-card h1 { font-size: 24px; letter-spacing: -.035em; color: var(--navy); margin-bottom: 8px; }
   .login-card h1::after { content: "Secure finance operations"; display: block; margin-top: 8px; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0; }
   .floating-field { margin-bottom: 18px; }
-  .floating-field__input { height: 50px; border-color: var(--line-strong); border-radius: 9px; color: var(--ink); font-size: 14px; background: var(--surface); }
+  .floating-field__input {
+    height: 50px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    width: 100%;
+    outline: none;
+    transition: all 0.15s ease;
+  }
   .floating-field__input:hover { border-color: #b9c2d0; }
-  .floating-field__input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(40,100,220,.12); }
+  .floating-field__input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(199, 20, 24, 0.1); }
   .floating-field__label { font-size: 14px; color: var(--muted); }
-  .floating-field__input:focus + .floating-field__label, .floating-field__input:not(:placeholder-shown) + .floating-field__label { color: var(--blue); background: var(--surface); }
+  .floating-field__input:focus + .floating-field__label, .floating-field__input:not(:placeholder-shown) + .floating-field__label { color: var(--brand); background: var(--surface); }
   .login-btn { height: 48px; border-radius: 9px; background: var(--navy); box-shadow: 0 5px 12px rgba(16,42,76,.18); font-size: 14px; letter-spacing: .01em; }
   .login-btn:hover:not(:disabled) { background: var(--navy-deep); box-shadow: 0 8px 18px rgba(16,42,76,.24); transform: translateY(-1px); }
   #loginError { min-height: 18px; color: var(--danger); font-size: 12px; font-weight: 600; }
@@ -421,9 +468,12 @@
 
   #summaryTable, #table { border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); table-layout: fixed; width: 100%; }
   #table { overflow: hidden; }
-  #summaryTable thead th { position: sticky; top: 0; z-index: 5; }  
+  #summaryTable thead th { position: sticky; top: 0; z-index: 5; }
   table { background: var(--surface); }
-  th, td { padding: 10px 8px; border-bottom-color: var(--line); color: #344054; font-size: 11px; vertical-align: middle; overflow-wrap: break-word; }
+  th, td { padding: 8px 8px; border-bottom-color: var(--line); color: #344054; font-size: 11px; vertical-align: middle; overflow-wrap: break-word; }
+  #table td.cell-num, #table th.cell-num { text-align: right; font-variant-numeric: tabular-nums; }
+  #table td.cell-id { font-variant-numeric: tabular-nums; color: var(--subtle); }
+  #table td.cell-timestamp { font-variant-numeric: tabular-nums; }
   th { background: #f8fafc; color: #667085; font-size: 11px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; white-space: nowrap; }
   tbody tr { transition: background-color .15s ease, box-shadow .15s ease; }
   tbody tr:hover { background: #f8fbff; box-shadow: inset 3px 0 0 var(--blue); }
@@ -434,16 +484,13 @@
   .summary-table tbody td:first-child { color: var(--navy); font-weight: 700; }
   .summary-table tr.total-row { color: var(--navy); background: #f7f9fc; }
   .summary-table tr.total-row td { border-top: 1px solid var(--line-strong); }
-  .count-received { color: var(--warning); } .count-posted { color: var(--success); } .count-rejected { color: var(--danger); }
-  .status-chip { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 999px; font-size: 11px; line-height: 1; font-weight: 750; white-space: nowrap; }
-  .status-Received { color: var(--warning); background: var(--warning-soft); }
-  .status-PostedinSAP { color: var(--success); background: var(--success-soft); }
-  .status-Rejected { color: var(--danger); background: var(--danger-soft); }
-  .review-badge { padding: 4px 7px; border-radius: 999px; color: var(--warning); background: #fff0cf; font-size: 10px; font-weight: 800; letter-spacing: .02em; }
-  .verification-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 999px; font-size: 11px; font-weight: 750; white-space: nowrap; }
-  .verification-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .verification-chip--verified { color: var(--success); background: var(--success-soft); }
-  .verification-chip--review { color: var(--warning); background: var(--warning-soft); }
+  .count-received { color: #475467; font-weight: 700; } .count-posted { color: #475467; font-weight: 700; } .count-rejected { color: var(--danger); font-weight: 700; }
+  /* Muted, reconciled status badges — one badge per row, neutral by default, color reserved for items needing action */
+  .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 4px; font-size: 11px; line-height: 1.3; font-weight: 650; white-space: nowrap; }
+  .status-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .status-chip--neutral { color: #475467; background: #eef1f5; }
+  .status-chip--attention { color: var(--danger); background: var(--danger-soft); }
+  .status-chip--success { color: var(--success); background: var(--success-soft); }
   .extracted { color: var(--muted); font-size: 11px; line-height: 1.7; }
   .extracted b { color: #475467; font-weight: 700; }
   a.screenshot-link { display: inline-flex; align-items: center; gap: 5px; color: var(--blue); font-size: 12px; font-weight: 700; text-decoration: none; }
@@ -453,6 +500,12 @@
   .btn-rejected { background: var(--danger); } .btn-rejected:hover { background: #9f2020; }
   button.action-btn.btn-note { color: #344054; background: #eef2f6; } button.action-btn.btn-note:hover { background: #e2e8f0; }
   .btn-note-send { background: var(--blue); } .btn-note-send:hover { background: #1f56c3; }
+
+  /* Change 1 (row logic): action group — horizontal, compact; conditional actions vs muted View Details for terminal-state rows */
+  .row-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .row-actions button.action-btn { width: auto; display: inline-flex; align-items: center; margin: 0; padding: 6px 10px; white-space: nowrap; }
+  .btn-view-details { background: #6b7280; color: #fff; border: none; box-shadow: none; }
+  .btn-view-details:hover { background: #4b5563; }
   .action-divider { border-top-color: var(--line); margin: 7px 0; }
   .note-box { padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; animation: note-in .16s ease both; }
   @keyframes note-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
@@ -517,6 +570,58 @@
     border: 1px solid var(--line); border-radius: 7px; margin-bottom: 6px; font-size: 13px;
   }
   .phone-list-item button { border: none; background: none; color: var(--danger); cursor: pointer; font-size: 13px; font-weight: 700; }
+
+  /* Change 1: Submissions row typography */
+  .sub-pbo { font-weight: 700; font-size: 13.5px; color: #0b2545; letter-spacing: 0.2px; }
+  .sub-meta { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+  .sub-dealer { font-weight: 600; color: #1e293b; font-size: 13px; }
+  .sub-amount { font-weight: 700; font-size: 13.5px; color: #0f172a; }
+  .sub-sender { color: #334155; font-weight: 600; }
+
+  /* Change 2: Pagination */
+  .pagination-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: #ffffff; border: 1px solid var(--line); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; color: #64748b; flex-wrap: wrap; gap: 12px;
+  }
+  .pagination-nav { display: flex; align-items: center; gap: 10px; }
+  .pagination-select { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; font-size: 12px; outline: none; cursor: pointer; }
+  .page-btn {
+    padding: 5px 12px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 600; color: #1e293b; transition: all 0.15s ease;
+  }
+  .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+  .page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .page-indicator { font-size: 12px; font-weight: 600; color: #334155; }
+
+  /* Change 3: Audit Trail modal */
+  .audit-overlay {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 999;
+  }
+  .audit-box {
+    background: #ffffff; border-radius: 12px; width: 92%; max-width: 540px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; max-height: 85vh; display: flex; flex-direction: column;
+  }
+  .audit-header { padding: 14px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+  .audit-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; line-height: 1; }
+  .audit-body { padding: 20px; overflow-y: auto; }
+  .audit-timeline {
+    display: flex; flex-direction: column; position: relative; padding-left: 20px;
+    border-left: 2px solid #e2e8f0; margin-left: 8px; gap: 16px; margin-bottom: 20px;
+  }
+  .timeline-entry { position: relative; }
+  .timeline-pin { position: absolute; left: -27px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #1a73e8; border: 2px solid #fff; }
+  .timeline-pin.success { background: #16a34a; }
+  .timeline-pin.warning { background: #d97706; }
+  .timeline-title { font-weight: 600; font-size: 13px; color: #1e293b; }
+  .timeline-stamp { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .timeline-card { margin-top: 6px; background: #f8fafc; padding: 8px 12px; border-radius: 6px; font-size: 12px; border-left: 3px solid #cbd5e1; color: #334155; line-height: 1.4; }
+  .audit-add-note { border-top: 1px solid #e2e8f0; padding-top: 16px; }
+  .audit-input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none; }
+  .audit-input:focus { border-color: #1a73e8; }
+  .audit-send-btn { padding: 0 16px; background: #0b2545; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; }
+  .audit-send-btn:hover { background: #133b6d; }
 </style>
 </head>
 <body>
@@ -737,20 +842,35 @@
                   </span>
                 </label>
               </th>
-              <th style="width:3%;">ID</th>
-              <th style="width:9%;">Dealer</th>
-              <th style="width:8%;">PBO Ref</th>
-              <th style="width:20%;">Extracted from Screenshot</th>
-              <th style="width:7%;">Verified</th>
-              <th style="width:10%;">Notes</th>
+              <th style="width:4%;">ID</th>
+              <th style="width:12%;">PBO / Dealer</th>
+              <th style="width:18%;" class="cell-num">Extracted Details</th>
+              <th style="width:9%;">Notes</th>
               <th style="width:7%;">Screenshot</th>
-              <th style="width:8%;">Status</th>
-              <th style="width:8%;">Submitted</th>
-              <th style="width:15%;">Actions</th>
+              <th style="width:12%;">Status</th>
+              <th style="width:9%;">Submitted</th>
+              <th style="width:18%;">Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
+        <div class="pagination-bar">
+          <div id="paginationInfo" class="pagination-info">Showing 0 to 0 of 0 entries</div>
+          <div class="pagination-nav">
+            <label class="per-page-label">
+              Show:
+              <select id="pageSizeSelect" class="pagination-select">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+            <button type="button" class="page-btn" id="prevPageBtn" disabled>&laquo; Prev</button>
+            <span id="pageIndicator" class="page-indicator">Page 1 of 1</span>
+            <button type="button" class="page-btn" id="nextPageBtn" disabled>Next &raquo;</button>
+          </div>
+        </div>
         <div id="empty" style="display:none;">No submissions yet.</div>
       </div>
       <!-- ============ ADMIN TAB ============ -->
@@ -903,7 +1023,31 @@
         </div>
       </div>
 
-    </main>
+      <!-- ============ AUDIT TRAIL MODAL ============ -->
+      <div class="audit-overlay" id="auditModal" style="display: none;">
+        <div class="audit-box">
+          <div class="audit-header">
+            <h3 id="auditModalTitle" style="margin:0; font-size:16px;">Audit Trail</h3>
+            <button type="button" class="audit-close" id="closeAuditModal">&times;</button>
+          </div>
+          <div class="audit-body">
+            <div style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">
+              Activity &amp; Notes Timeline
+            </div>
+            <div class="audit-timeline" id="auditTimeline"></div>
+            <div class="audit-add-note">
+              <label style="font-size: 12px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 6px;">
+                Add Finance Note (Sends WhatsApp)
+              </label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="auditNoteInput" class="audit-input" placeholder="e.g. Deposit slip blurry, please re-upload...">
+                <button type="button" id="auditSendBtn" class="audit-send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -949,7 +1093,7 @@
         allRows = data;
         await loadDealers();
         applyFilters();
-        updateHomeDateNavUI();
+        setHomeSingleDate(homeSingleDate);
         renderSummaryTable();
         setInterval(loadSubmissions, 5000);
       } else {
@@ -1161,6 +1305,7 @@
     }
     updateExportState();
     updateDropdownLabel();
+    currentPage = 1;
     applyFilters();
   }
 
@@ -1223,7 +1368,9 @@
     }
   });
 
-  document.getElementById('pboSearch').addEventListener('input', applyFilters);
+  document.getElementById('pboSearch').addEventListener('input', () => { currentPage = 1; applyFilters(); });
+
+  let currentFilteredRows = [];
 
   function applyFilters() {
     const searchTerm = document.getElementById('pboSearch').value.trim().toLowerCase();
@@ -1236,7 +1383,8 @@
         return rowDate >= startDateEl.value && rowDate <= endDateEl.value;
       });
     }
-    renderSubmissions(filtered);
+    currentFilteredRows = filtered;
+    renderSubmissions();
   }
 
   async function loadSubmissions() {
@@ -1248,7 +1396,51 @@
     renderSummaryTable();
   }
 
-  function renderSubmissions(data) {
+  // ---------- Change 2: Pagination ----------
+  let currentPage = 1;
+  let pageSize = 10;
+
+  function getPaginatedRows(filteredArray) {
+    const total = filteredArray.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const pageRows = filteredArray.slice(startIdx, startIdx + pageSize);
+
+    const startNum = total === 0 ? 0 : startIdx + 1;
+    const endNum = Math.min(startIdx + pageSize, total);
+
+    document.getElementById('paginationInfo').textContent = `Showing ${startNum} to ${endNum} of ${total} entries`;
+    document.getElementById('pageIndicator').textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+    document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+
+    return pageRows;
+  }
+
+  document.getElementById('prevPageBtn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderSubmissions();
+    }
+  });
+
+  document.getElementById('nextPageBtn').addEventListener('click', () => {
+    currentPage++;
+    renderSubmissions();
+  });
+
+  document.getElementById('pageSizeSelect').addEventListener('change', (e) => {
+    pageSize = parseInt(e.target.value, 10);
+    currentPage = 1;
+    renderSubmissions();
+  });
+
+  // ---------- Change 1: row rendering with new typography + pagination ----------
+  function renderSubmissions() {
     const previouslyChecked = new Set(
       Array.from(document.querySelectorAll('.rowCheck:checked')).map(cb => cb.dataset.id)
     );
@@ -1256,19 +1448,56 @@
     const empty = document.getElementById('empty');
     tbody.innerHTML = '';
 
-    if (data.length === 0) { empty.style.display = 'block'; return; }
+    if (currentFilteredRows.length === 0) {
+      empty.style.display = 'block';
+      document.getElementById('paginationInfo').textContent = 'Showing 0 to 0 of 0 entries';
+      document.getElementById('pageIndicator').textContent = 'Page 1 of 1';
+      document.getElementById('prevPageBtn').disabled = true;
+      document.getElementById('nextPageBtn').disabled = true;
+      return;
+    }
     empty.style.display = 'none';
 
-    data.forEach(row => {
+    const pageRows = getPaginatedRows(currentFilteredRows);
+
+    pageRows.forEach(row => {
       const tr = document.createElement('tr');
-      if (row.needs_review) tr.className = 'review-flag';
-      const reviewBadge = row.needs_review
-        ? `<div class="review-badge">⚠ NEEDS REVIEW</div><div style="font-size:11px;color:#a05a00;">${escapeHtml(row.review_reason || '')}</div>`
-        : '';
-      const isVerified = !row.needs_review && String(row.extracted_status || '').toLowerCase() === 'success';
-      const verificationChip = isVerified
-        ? '<span class="verification-chip verification-chip--verified">Verified</span>'
-        : '<span class="verification-chip verification-chip--review">Needs review</span>';
+
+      // Reconciled single workflow status: Needs Review > Rejected > Posted in SAP > Pending (Received)
+      // needs_review is folded into the SAME badge column instead of a competing chip.
+      let statusLabel, statusClass, rowFlag;
+      if (row.needs_review) {
+        statusLabel = 'Needs Review';
+        statusClass = 'status-chip--attention';
+        rowFlag = 'review-flag';
+      } else if (row.status === 'Rejected') {
+        statusLabel = 'Rejected';
+        statusClass = 'status-chip--attention';
+        rowFlag = '';
+      } else if (row.status === 'Posted in SAP') {
+        statusLabel = 'Posted in SAP';
+        statusClass = 'status-chip--success';
+        rowFlag = '';
+      } else {
+        statusLabel = 'Pending Review';
+        statusClass = 'status-chip--neutral';
+        rowFlag = '';
+      }
+      tr.className = rowFlag;
+
+      // Conditional actions: only rows needing action (Received, not yet reviewed-out) get primary buttons.
+      // Terminal-state rows (Posted in SAP / Rejected) get a single muted "View Details" action instead.
+      const isTerminal = row.status === 'Posted in SAP' || row.status === 'Rejected';
+      const actionsHtml = isTerminal
+        ? `<button class="action-btn btn-view-details" onclick="openAuditTimeline(${row.id})">View Details</button>`
+        : `
+          <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Post to SAP</button>
+          <button class="action-btn btn-rejected" onclick="updateStatus(${row.id}, 'Rejected')">Reject</button>
+          <button class="action-btn btn-view-details" onclick="openAuditTimeline(${row.id})" title="Timeline &amp; notes">···</button>
+        `;
+
+      const amountValue = row.extracted_amount ? Number(row.extracted_amount).toLocaleString() : (row.amount ? Number(row.amount).toLocaleString() : 'N/A');
+
       tr.innerHTML = `
         <td>
           <label class="ui-checkbox">
@@ -1280,35 +1509,20 @@
             </span>
           </label>
         </td>
-        <td>${row.id}</td>
-        <td>${escapeHtml(row.dealer_name)}</td>
-        <td>${escapeHtml(row.pbo_reference)}</td>
+        <td class="cell-id">${row.id}</td>
         <td>
-          ${reviewBadge}
-          <div class="extracted">
-            <b>Status:</b> ${escapeHtml(row.extracted_status || '-')}<br>
-            <b>Sender:</b> ${escapeHtml(row.extracted_sender_name || '-')}<br>
-            <b>Amount:</b> ${escapeHtml(row.extracted_amount || '-')}<br>
-            <b>Type:</b> ${escapeHtml(row.extracted_transaction_type || '-')}<br>
-            <b>Date:</b> ${escapeHtml(row.extracted_date || '-')}<br>
-            <b>To:</b> ${escapeHtml(row.extracted_to_account_name || '-')}
-          </div>
+          <div class="sub-pbo">${escapeHtml(row.pbo_reference)}</div>
+          <div class="sub-meta"><span class="sub-dealer">${escapeHtml(row.dealer_name)}</span></div>
         </td>
-        <td>${verificationChip}</td>
+        <td class="cell-num">
+          <div class="sub-amount">PKR ${amountValue}</div>
+          <div class="sub-meta">${escapeHtml(row.extracted_sender_name || 'Unknown')}${row.extracted_transaction_type ? ' • ' + escapeHtml(row.extracted_transaction_type) : ''}</div>
+        </td>
         <td>${escapeHtml(row.notes || '-')}</td>
         <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
-        <td><span class="status-chip status-${row.status.replace(/\s+/g, '')}">${row.status}</span></td>
-        <td>${row.created_at}</td>
-        <td>
-          <button class="action-btn btn-posted" onclick="updateStatus(${row.id}, 'Posted in SAP')">Posted in SAP</button>
-          <button class="action-btn btn-rejected" onclick="updateStatus(${row.id}, 'Rejected')">Rejected</button>
-          <hr class="action-divider">
-          <button class="action-btn btn-note" onclick="toggleNoteBox(${row.id})">Add Note</button>
-          <div class="note-box" id="noteBox-${row.id}" style="display:none;">
-            <textarea class="note-textarea" id="noteText-${row.id}" placeholder="Type note..."></textarea>
-            <button class="action-btn btn-note-send" onclick="sendNote(${row.id})">Send Note</button>
-          </div>
-        </td>
+        <td><span class="status-chip ${statusClass}">${statusLabel}</span></td>
+        <td class="cell-timestamp">${row.created_at}</td>
+        <td><div class="row-actions">${actionsHtml}</div></td>
       `;
       tbody.appendChild(tr);
     });
@@ -1332,36 +1546,100 @@
     loadSubmissions();
   }
 
-  function toggleNoteBox(id) {
-    const box = document.getElementById(`noteBox-${id}`);
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  }
-
-  async function sendNote(id) {
-    const textarea = document.getElementById(`noteText-${id}`);
-    const note = textarea.value.trim();
-    if (!note) { alert('Please type a note before sending.'); return; }
-    const res = await fetch(`/api/submissions/${id}/note`, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note })
-    });
-    if (!res.ok) {
-      showToast('Note could not be sent. Please try again.', true);
-      return;
-    }
-    textarea.value = '';
-    document.getElementById(`noteBox-${id}`).style.display = 'none';
-    showToast('Note sent to the dealer.');
-    loadSubmissions();
-  }
-
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
+
+  // ---------- Change 3: Audit Trail modal ----------
+  let currentAuditSubmissionId = null;
+
+  async function openAuditTimeline(submissionId) {
+    currentAuditSubmissionId = submissionId;
+    const modal = document.getElementById('auditModal');
+    const title = document.getElementById('auditModalTitle');
+    const container = document.getElementById('auditTimeline');
+
+    const sub = allRows.find(r => r.id === submissionId);
+    if (!sub) return;
+
+    title.textContent = `Audit Trail: ${sub.pbo_reference} (${sub.dealer_name})`;
+
+    let notes = [];
+    try {
+      const res = await fetch(`/api/submissions/${submissionId}/notes`, { credentials: 'same-origin' });
+      if (res.ok) notes = await res.json();
+    } catch (err) {
+      console.error('Could not fetch notes', err);
+    }
+
+    let html = `
+      <div class="timeline-entry">
+        <div class="timeline-pin success"></div>
+        <div class="timeline-title">Current Status: <strong>${escapeHtml(sub.status)}</strong></div>
+        <div class="timeline-stamp">Updated: ${escapeHtml(sub.updated_at || sub.created_at)}</div>
+      </div>
+    `;
+
+    if (notes && notes.length > 0) {
+      notes.forEach(n => {
+        html += `
+          <div class="timeline-entry">
+            <div class="timeline-pin warning"></div>
+            <div class="timeline-title">Finance Note Dispatched</div>
+            <div class="timeline-stamp">${escapeHtml(n.created_at)}</div>
+            <div class="timeline-card">${escapeHtml(n.note_text)}</div>
+          </div>
+        `;
+      });
+    }
+
+    html += `
+      <div class="timeline-entry">
+        <div class="timeline-pin"></div>
+        <div class="timeline-title">Receipt Ingested &amp; AI Extracted</div>
+        <div class="timeline-stamp">Received at: ${escapeHtml(sub.created_at)}</div>
+        <div class="timeline-card">
+          <strong>Sender:</strong> ${escapeHtml(sub.extracted_sender_name || 'Not detected')}<br>
+          <strong>Amount:</strong> PKR ${sub.extracted_amount ? Number(sub.extracted_amount).toLocaleString() : 'N/A'}<br>
+          <strong>AI Review:</strong> ${sub.needs_review ? '⚠ ' + escapeHtml(sub.review_reason || 'Needs review') : '✓ Verified'}
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+    modal.style.display = 'flex';
+  }
+
+  document.getElementById('closeAuditModal').addEventListener('click', () => {
+    document.getElementById('auditModal').style.display = 'none';
+  });
+  document.getElementById('auditModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+  });
+
+  document.getElementById('auditSendBtn').addEventListener('click', async () => {
+    const input = document.getElementById('auditNoteInput');
+    const note = input.value.trim();
+    if (!note || !currentAuditSubmissionId) return;
+
+    const res = await fetch(`/api/submissions/${currentAuditSubmissionId}/note`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note })
+    });
+
+    if (res.ok) {
+      input.value = '';
+      showToast('Note sent to the dealer.');
+      loadSubmissions();
+      openAuditTimeline(currentAuditSubmissionId);
+    } else {
+      showToast('Failed to send note.', true);
+    }
+  });
 
   // ================= HOME TAB =================
   let selectedDealersHome = new Set();
@@ -1379,107 +1657,112 @@
   const homeEndDateEl = document.getElementById('homeEndDate');
   const homeDropdownLabel = document.getElementById('homeDateDropdownLabel');
 
-  function updateHomeDropdownLabel() {
-    if (homeStartDateEl.value && homeEndDateEl.value) homeDropdownLabel.textContent = `${homeStartDateEl.value} to ${homeEndDateEl.value}`;
-    else homeDropdownLabel.textContent = 'Select date range';
-  }
+  document.querySelectorAll('#homeDateDropdownPanel .date-dropdown__preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyPreset(btn.dataset.preset, homeStartDateEl, homeEndDateEl, () => { updateHomeDateNavUI(); renderSummaryTable(); });
+      document.getElementById('homeDateDropdownPanel').classList.remove('open');
+      document.getElementById('homeDateDropdownTrigger').classList.remove('active');
+    });
+  });
 
-document.querySelectorAll('#homeDateDropdownPanel .date-dropdown__preset').forEach(btn => {
-  btn.addEventListener('click', () => {
-    applyPreset(btn.dataset.preset, homeStartDateEl, homeEndDateEl, () => { updateHomeDateNavUI(); renderSummaryTable(); });
+  document.getElementById('homeDateDropdownClear').addEventListener('click', () => {
+    setHomeSingleDate(toLocalDateString(new Date()));
     document.getElementById('homeDateDropdownPanel').classList.remove('open');
     document.getElementById('homeDateDropdownTrigger').classList.remove('active');
   });
-});
 
-document.getElementById('homeDateDropdownClear').addEventListener('click', () => {
-  setHomeSingleDate(toLocalDateString(new Date()));
-  document.getElementById('homeDateDropdownPanel').classList.remove('open');
-  document.getElementById('homeDateDropdownTrigger').classList.remove('active');
-});
+  homeStartDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
+  homeEndDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
 
-homeStartDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
-homeEndDateEl.addEventListener('change', () => { updateHomeDateNavUI(); renderSummaryTable(); });
+  // ---------- Home date nav (arrows + label + Change 6: Today/Yesterday) ----------
+  let homeSingleDate = toLocalDateString(new Date());
 
-// ---------- Home date nav (arrows + label) ----------
-let homeSingleDate = toLocalDateString(new Date());
+  function formatDisplayDate(dateStr) {
+    const todayStr = toLocalDateString(new Date());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = toLocalDateString(yesterday);
 
-function formatDisplayDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
+    if (dateStr === todayStr) return 'Today';
+    if (dateStr === yesterdayStr) return 'Yesterday';
 
-function updateHomeDateNavUI() {
-  const nav = document.getElementById('homeDateNav');
-  const isRange = homeStartDateEl.value && homeEndDateEl.value && homeStartDateEl.value !== homeEndDateEl.value;
-
-  if (isRange) {
-    nav.classList.add('range-mode');
-    homeDropdownLabel.textContent = `${formatDisplayDate(homeStartDateEl.value)} - ${formatDisplayDate(homeEndDateEl.value)}`;
-  } else {
-    nav.classList.remove('range-mode');
-    homeDropdownLabel.textContent = formatDisplayDate(homeSingleDate);
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
-}
 
-function setHomeSingleDate(dateStr) {
-  homeSingleDate = dateStr;
-  homeStartDateEl.value = dateStr;
-  homeEndDateEl.value = dateStr;
-  updateHomeDateNavUI();
-  renderSummaryTable();
-}
+  function updateHomeDateNavUI() {
+    const nav = document.getElementById('homeDateNav');
+    const isRange = homeStartDateEl.value && homeEndDateEl.value && homeStartDateEl.value !== homeEndDateEl.value;
 
-document.getElementById('homeDatePrev').addEventListener('click', () => {
-  const d = new Date(homeSingleDate + 'T00:00:00');
-  d.setDate(d.getDate() - 1);
-  setHomeSingleDate(toLocalDateString(d));
-});
-
-document.getElementById('homeDateNext').addEventListener('click', () => {
-  const d = new Date(homeSingleDate + 'T00:00:00');
-  d.setDate(d.getDate() + 1);
-  setHomeSingleDate(toLocalDateString(d));
-});
-document.getElementById('homeExportBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('homeExportBtn');
-  if (btn.dataset.status !== 'idle') return;
-
-  const msg = document.getElementById('homeExportMsg');
-  msg.textContent = '';
-  btn.dataset.status = 'loading';
-
-  try {
-    const res = await fetch('/api/submissions/export', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ startDate: homeStartDateEl.value, endDate: homeEndDateEl.value, dealers: [...selectedDealersHome] })
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      msg.textContent = err.error || 'Export failed.';
-      btn.dataset.status = 'idle';
-      return;
+    if (isRange) {
+      nav.classList.add('range-mode');
+      homeDropdownLabel.textContent = `${formatDisplayDate(homeStartDateEl.value)} - ${formatDisplayDate(homeEndDateEl.value)}`;
+    } else {
+      nav.classList.remove('range-mode');
+      homeDropdownLabel.textContent = formatDisplayDate(homeSingleDate);
     }
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'submissions_export.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-    btn.dataset.status = 'success';
-    showToast('Export ready for download.');
-    setTimeout(() => { btn.dataset.status = 'idle'; }, 1200);
-  } catch (err) {
-    msg.textContent = 'Export failed.';
-    showToast('Export failed. Please try again.', true);
-    btn.dataset.status = 'idle';
   }
-});
+
+  function setHomeSingleDate(dateStr) {
+    homeSingleDate = dateStr;
+    homeStartDateEl.value = dateStr;
+    homeEndDateEl.value = dateStr;
+    updateHomeDateNavUI();
+    renderSummaryTable();
+  }
+
+  document.getElementById('homeDatePrev').addEventListener('click', () => {
+    const d = new Date(homeSingleDate + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    setHomeSingleDate(toLocalDateString(d));
+  });
+
+  document.getElementById('homeDateNext').addEventListener('click', () => {
+    const d = new Date(homeSingleDate + 'T00:00:00');
+    d.setDate(d.getDate() + 1);
+    setHomeSingleDate(toLocalDateString(d));
+  });
+
+  // ---------- Change 5: Home export now uses dedicated summary endpoint ----------
+  document.getElementById('homeExportBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('homeExportBtn');
+    if (btn.dataset.status !== 'idle') return;
+
+    const msg = document.getElementById('homeExportMsg');
+    msg.textContent = '';
+    btn.dataset.status = 'loading';
+
+    try {
+      const res = await fetch('/api/summary/export', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: homeStartDateEl.value, endDate: homeEndDateEl.value, dealers: [...selectedDealersHome] })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        msg.textContent = err.error || 'Export failed.';
+        btn.dataset.status = 'idle';
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dealer_summary_export.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      btn.dataset.status = 'success';
+      showToast('Summary export ready for download.');
+      setTimeout(() => { btn.dataset.status = 'idle'; }, 1200);
+    } catch (err) {
+      msg.textContent = 'Export failed.';
+      showToast('Export failed. Please try again.', true);
+      btn.dataset.status = 'idle';
+    }
+  });
 
   function renderSummaryTable() {
     let filtered = allRows;
@@ -1498,13 +1781,12 @@ document.getElementById('homeExportBtn').addEventListener('click', async () => {
 
     tbody.innerHTML = dealersToShow.map(dealer => {
       const dealerRows = filtered.filter(row => row.dealer_name === dealer.dealer_name);
-      const received = dealerRows.filter(r => r.status === 'Received').length;
+      const total = dealerRows.length;
       const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
       const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
       const verified = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success').length;
-      const total = dealerRows.length;
 
-      grandReceived += received;
+      grandReceived += total;
       grandPosted += posted;
       grandRejected += rejected;
       grandVerified += verified;
@@ -1512,7 +1794,7 @@ document.getElementById('homeExportBtn').addEventListener('click', async () => {
       return `
         <tr>
           <td>${escapeHtml(dealer.dealer_name)}</td>
-          <td class="count-received">${fmt(received)}</td>
+          <td class="count-received">${fmt(total)}</td>
           <td class="count-posted">${fmt(posted)}</td>
           <td class="count-rejected">${fmt(rejected)}</td>
           <td class="count-posted">${fmt(verified)}</td>
@@ -1526,215 +1808,215 @@ document.getElementById('homeExportBtn').addEventListener('click', async () => {
     document.getElementById('totalPosted').textContent = fmtGrand(grandPosted);
     document.getElementById('totalRejected').textContent = fmtGrand(grandRejected);
     document.getElementById('totalVerified').textContent = fmtGrand(grandVerified);
-    document.getElementById('totalAll').textContent = fmtGrand(grandReceived + grandPosted + grandRejected);
+    document.getElementById('totalAll').textContent = fmtGrand(grandReceived);
     document.getElementById('statReceived').textContent = fmtGrand(grandReceived);
     document.getElementById('statPosted').textContent = fmtGrand(grandPosted);
     document.getElementById('statRejected').textContent = fmtGrand(grandRejected);
     document.getElementById('statVerified').textContent = fmtGrand(grandVerified);
-    document.getElementById('statTotal').textContent = fmtGrand(grandReceived + grandPosted + grandRejected);
-
+    document.getElementById('statTotal').textContent = fmtGrand(grandReceived);
   }
 
-  // ---------- Kick things off ----------
-// ================= ADMIN TAB (mock data for preview) =================
-let mockDealers = [
-  { id: 1, dealer_name: 'MG Capital', sap_code: '12000001', phones: ['923001111111', '923002222222'] },
-  { id: 2, dealer_name: 'MG Lounge', sap_code: '12000003', phones: ['923003333333'] },
-  { id: 3, dealer_name: 'MG City', sap_code: '12000002', phones: [] },
-];
+  // ================= ADMIN TAB (mock data for preview) =================
+  let mockDealers = [
+    { id: 1, dealer_name: 'MG Capital', sap_code: '12000001', phones: ['923001111111', '923002222222'] },
+    { id: 2, dealer_name: 'MG Lounge', sap_code: '12000003', phones: ['923003333333'] },
+    { id: 3, dealer_name: 'MG City', sap_code: '12000002', phones: [] },
+  ];
 
-let mockUsers = [
-  { id: 1, name: 'Finance Admin', username: 'finance', email: '', phone: '' },
-];
+  let mockUsers = [
+    { id: 1, name: 'Finance Admin', username: 'finance', email: '', phone: '' },
+  ];
 
-function renderDealersTable() {
-  document.getElementById('adminDealerCount').textContent = mockDealers.length;
-  document.getElementById('dealersTbody').innerHTML = mockDealers.map(d => {
-    const phonesHtml = d.phones.length > 0
-      ? d.phones.map(p => `<span class="admin-phone-tag">${escapeHtml(p)}</span>`).join('')
-      : `<span class="admin-phone-empty">No numbers on file</span>`;
-    return `
+  function renderDealersTable() {
+    document.getElementById('adminDealerCount').textContent = mockDealers.length;
+    document.getElementById('dealersTbody').innerHTML = mockDealers.map(d => {
+      const phonesHtml = d.phones.length > 0
+        ? d.phones.map(p => `<span class="admin-phone-tag">${escapeHtml(p)}</span>`).join('')
+        : `<span class="admin-phone-empty">No numbers on file</span>`;
+      return `
+        <tr>
+          <td>${escapeHtml(d.dealer_name)}</td>
+          <td>${escapeHtml(d.sap_code)}</td>
+          <td>${phonesHtml}</td>
+          <td>
+            <div class="admin-row-actions">
+              <button class="action-btn btn-manage" onclick="openPhonesModal(${d.id})">Manage Numbers</button>
+              <button class="action-btn btn-remove" onclick="removeDealer(${d.id})">Remove</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderUsersTable() {
+    document.getElementById('adminUserCount').textContent = mockUsers.length;
+    document.getElementById('usersTbody').innerHTML = mockUsers.map(u => `
       <tr>
-        <td>${escapeHtml(d.dealer_name)}</td>
-        <td>${escapeHtml(d.sap_code)}</td>
-        <td>${phonesHtml}</td>
+        <td>${escapeHtml(u.name)}</td>
+        <td>${escapeHtml(u.username)}</td>
+        <td>${escapeHtml(u.email || '-')}</td>
+        <td>${escapeHtml(u.phone || '-')}</td>
         <td>
           <div class="admin-row-actions">
-            <button class="action-btn btn-manage" onclick="openPhonesModal(${d.id})">Manage Numbers</button>
-            <button class="action-btn btn-remove" onclick="removeDealer(${d.id})">Remove</button>
+            <button class="action-btn btn-reset" onclick="openResetModal(${u.id})">Reset Password</button>
+            <button class="action-btn btn-remove" onclick="removeUser(${u.id})">Remove</button>
           </div>
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-function renderUsersTable() {
-  document.getElementById('adminUserCount').textContent = mockUsers.length;
-  document.getElementById('usersTbody').innerHTML = mockUsers.map(u => `
-    <tr>
-      <td>${escapeHtml(u.name)}</td>
-      <td>${escapeHtml(u.username)}</td>
-      <td>${escapeHtml(u.email || '-')}</td>
-      <td>${escapeHtml(u.phone || '-')}</td>
-      <td>
-        <div class="admin-row-actions">
-          <button class="action-btn btn-reset" onclick="openResetModal(${u.id})">Reset Password</button>
-          <button class="action-btn btn-remove" onclick="removeUser(${u.id})">Remove</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-document.getElementById('addDealerBtn').addEventListener('click', () => {
-  document.getElementById('newDealerName').value = '';
-  document.getElementById('newDealerSapCode').value = '';
-  document.getElementById('newDealerPhones').value = '';
-  document.getElementById('addDealerModal').style.display = 'flex';
-});
-document.getElementById('closeDealerModal').addEventListener('click', () => {
-  document.getElementById('addDealerModal').style.display = 'none';
-});
-document.getElementById('addDealerModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
-document.getElementById('saveDealerBtn').addEventListener('click', () => {
-  const name = document.getElementById('newDealerName').value.trim();
-  const sap = document.getElementById('newDealerSapCode').value.trim();
-  const phonesRaw = document.getElementById('newDealerPhones').value.trim();
-  if (!name || !sap) { alert('Dealer name and SAP code are required.'); return; }
-  const phones = phonesRaw ? phonesRaw.split(',').map(p => p.trim()).filter(Boolean) : [];
-  mockDealers.push({ id: Date.now(), dealer_name: name, sap_code: sap, phones });
-  renderDealersTable();
-  document.getElementById('addDealerModal').style.display = 'none';
-  showToast(`Dealer "${name}" added.`);
-});
-
-function removeDealer(id) {
-  const dealer = mockDealers.find(d => d.id === id);
-  if (!confirm(`Remove dealer "${dealer.dealer_name}"? This cannot be undone.`)) return;
-  mockDealers = mockDealers.filter(d => d.id !== id);
-  renderDealersTable();
-  showToast(`Dealer "${dealer.dealer_name}" removed.`);
-}
-
-let currentPhonesDealerId = null;
-
-function openPhonesModal(dealerId) {
-  currentPhonesDealerId = dealerId;
-  const dealer = mockDealers.find(d => d.id === dealerId);
-  document.getElementById('managePhonesTitle').textContent = `Manage Numbers — ${dealer.dealer_name}`;
-  renderPhonesList();
-  document.getElementById('newPhoneInput').value = '';
-  document.getElementById('managePhonesModal').style.display = 'flex';
-}
-
-function renderPhonesList() {
-  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
-  const list = document.getElementById('phonesList');
-  if (dealer.phones.length === 0) {
-    list.innerHTML = `<div class="admin-phone-empty">No numbers on file yet.</div>`;
-    return;
+    `).join('');
   }
-  list.innerHTML = dealer.phones.map(p => `
-    <div class="phone-list-item">
-      <span>${escapeHtml(p)}</span>
-      <button onclick="removePhone('${p}')">Remove</button>
-    </div>
-  `).join('');
-}
 
-function removePhone(phone) {
-  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
-  dealer.phones = dealer.phones.filter(p => p !== phone);
-  renderPhonesList();
+  document.getElementById('addDealerBtn').addEventListener('click', () => {
+    document.getElementById('newDealerName').value = '';
+    document.getElementById('newDealerSapCode').value = '';
+    document.getElementById('newDealerPhones').value = '';
+    document.getElementById('addDealerModal').style.display = 'flex';
+  });
+  document.getElementById('closeDealerModal').addEventListener('click', () => {
+    document.getElementById('addDealerModal').style.display = 'none';
+  });
+  document.getElementById('addDealerModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+  });
+  document.getElementById('saveDealerBtn').addEventListener('click', () => {
+    const name = document.getElementById('newDealerName').value.trim();
+    const sap = document.getElementById('newDealerSapCode').value.trim();
+    const phonesRaw = document.getElementById('newDealerPhones').value.trim();
+    if (!name || !sap) { alert('Dealer name and SAP code are required.'); return; }
+    const phones = phonesRaw ? phonesRaw.split(',').map(p => p.trim()).filter(Boolean) : [];
+    mockDealers.push({ id: Date.now(), dealer_name: name, sap_code: sap, phones });
+    renderDealersTable();
+    document.getElementById('addDealerModal').style.display = 'none';
+    showToast(`Dealer "${name}" added.`);
+  });
+
+  function removeDealer(id) {
+    const dealer = mockDealers.find(d => d.id === id);
+    if (!confirm(`Remove dealer "${dealer.dealer_name}"? This cannot be undone.`)) return;
+    mockDealers = mockDealers.filter(d => d.id !== id);
+    renderDealersTable();
+    showToast(`Dealer "${dealer.dealer_name}" removed.`);
+  }
+
+  let currentPhonesDealerId = null;
+
+  function openPhonesModal(dealerId) {
+    currentPhonesDealerId = dealerId;
+    const dealer = mockDealers.find(d => d.id === dealerId);
+    document.getElementById('managePhonesTitle').textContent = `Manage Numbers — ${dealer.dealer_name}`;
+    renderPhonesList();
+    document.getElementById('newPhoneInput').value = '';
+    document.getElementById('managePhonesModal').style.display = 'flex';
+  }
+
+  function renderPhonesList() {
+    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+    const list = document.getElementById('phonesList');
+    if (dealer.phones.length === 0) {
+      list.innerHTML = `<div class="admin-phone-empty">No numbers on file yet.</div>`;
+      return;
+    }
+    list.innerHTML = dealer.phones.map(p => `
+      <div class="phone-list-item">
+        <span>${escapeHtml(p)}</span>
+        <button onclick="removePhone('${p}')">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  function removePhone(phone) {
+    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+    dealer.phones = dealer.phones.filter(p => p !== phone);
+    renderPhonesList();
+    renderDealersTable();
+  }
+
+  document.getElementById('addPhoneBtn').addEventListener('click', () => {
+    const input = document.getElementById('newPhoneInput');
+    const phone = input.value.trim();
+    if (!phone) { alert('Enter a phone number first.'); return; }
+    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+    if (dealer.phones.includes(phone)) { alert('This number is already on file.'); return; }
+    dealer.phones.push(phone);
+    input.value = '';
+    renderPhonesList();
+    renderDealersTable();
+    showToast('Phone number added.');
+  });
+
+  document.getElementById('closePhonesModal').addEventListener('click', () => {
+    document.getElementById('managePhonesModal').style.display = 'none';
+  });
+  document.getElementById('managePhonesModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+  });
+
+  document.getElementById('addUserBtn').addEventListener('click', () => {
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserUsername').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('newUserEmail').value = '';
+    document.getElementById('newUserPhone').value = '';
+    document.getElementById('addUserModal').style.display = 'flex';
+  });
+  document.getElementById('closeUserModal').addEventListener('click', () => {
+    document.getElementById('addUserModal').style.display = 'none';
+  });
+  document.getElementById('addUserModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+  });
+  document.getElementById('saveUserBtn').addEventListener('click', () => {
+    const name = document.getElementById('newUserName').value.trim();
+    const username = document.getElementById('newUserUsername').value.trim();
+    const password = document.getElementById('newUserPassword').value;
+    const email = document.getElementById('newUserEmail').value.trim();
+    const phone = document.getElementById('newUserPhone').value.trim();
+    if (!name || !username || !password) { alert('Name, username, and password are required.'); return; }
+    mockUsers.push({ id: Date.now(), name, username, email, phone });
+    renderUsersTable();
+    document.getElementById('addUserModal').style.display = 'none';
+    showToast(`User "${name}" added.`);
+  });
+
+  function removeUser(id) {
+    if (mockUsers.length <= 1) { alert('Cannot remove the last finance user — at least one must remain.'); return; }
+    const user = mockUsers.find(u => u.id === id);
+    if (!confirm(`Remove user "${user.name}"?`)) return;
+    mockUsers = mockUsers.filter(u => u.id !== id);
+    renderUsersTable();
+    showToast(`User "${user.name}" removed.`);
+  }
+
+  let currentResetUserId = null;
+
+  function openResetModal(userId) {
+    currentResetUserId = userId;
+    const user = mockUsers.find(u => u.id === userId);
+    document.getElementById('resetPasswordTitle').textContent = `Reset Password — ${user.name}`;
+    document.getElementById('resetPasswordInput').value = '';
+    document.getElementById('resetPasswordModal').style.display = 'flex';
+  }
+
+  document.getElementById('closeResetModal').addEventListener('click', () => {
+    document.getElementById('resetPasswordModal').style.display = 'none';
+  });
+  document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+  });
+  document.getElementById('confirmResetBtn').addEventListener('click', () => {
+    const newPassword = document.getElementById('resetPasswordInput').value;
+    if (!newPassword || newPassword.length < 4) { alert('Enter a password (at least 4 characters).'); return; }
+    const user = mockUsers.find(u => u.id === currentResetUserId);
+    document.getElementById('resetPasswordModal').style.display = 'none';
+    showToast(`Password reset for "${user.name}".`);
+  });
+
   renderDealersTable();
-}
-
-document.getElementById('addPhoneBtn').addEventListener('click', () => {
-  const input = document.getElementById('newPhoneInput');
-  const phone = input.value.trim();
-  if (!phone) { alert('Enter a phone number first.'); return; }
-  const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
-  if (dealer.phones.includes(phone)) { alert('This number is already on file.'); return; }
-  dealer.phones.push(phone);
-  input.value = '';
-  renderPhonesList();
-  renderDealersTable();
-  showToast('Phone number added.');
-});
-
-document.getElementById('closePhonesModal').addEventListener('click', () => {
-  document.getElementById('managePhonesModal').style.display = 'none';
-});
-document.getElementById('managePhonesModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
-
-document.getElementById('addUserBtn').addEventListener('click', () => {
-  document.getElementById('newUserName').value = '';
-  document.getElementById('newUserUsername').value = '';
-  document.getElementById('newUserPassword').value = '';
-  document.getElementById('newUserEmail').value = '';
-  document.getElementById('newUserPhone').value = '';
-  document.getElementById('addUserModal').style.display = 'flex';
-});
-document.getElementById('closeUserModal').addEventListener('click', () => {
-  document.getElementById('addUserModal').style.display = 'none';
-});
-document.getElementById('addUserModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
-document.getElementById('saveUserBtn').addEventListener('click', () => {
-  const name = document.getElementById('newUserName').value.trim();
-  const username = document.getElementById('newUserUsername').value.trim();
-  const password = document.getElementById('newUserPassword').value;
-  const email = document.getElementById('newUserEmail').value.trim();
-  const phone = document.getElementById('newUserPhone').value.trim();
-  if (!name || !username || !password) { alert('Name, username, and password are required.'); return; }
-  mockUsers.push({ id: Date.now(), name, username, email, phone });
   renderUsersTable();
-  document.getElementById('addUserModal').style.display = 'none';
-  showToast(`User "${name}" added.`);
-});
 
-function removeUser(id) {
-  if (mockUsers.length <= 1) { alert('Cannot remove the last finance user — at least one must remain.'); return; }
-  const user = mockUsers.find(u => u.id === id);
-  if (!confirm(`Remove user "${user.name}"?`)) return;
-  mockUsers = mockUsers.filter(u => u.id !== id);
-  renderUsersTable();
-  showToast(`User "${user.name}" removed.`);
-}
-
-let currentResetUserId = null;
-
-function openResetModal(userId) {
-  currentResetUserId = userId;
-  const user = mockUsers.find(u => u.id === userId);
-  document.getElementById('resetPasswordTitle').textContent = `Reset Password — ${user.name}`;
-  document.getElementById('resetPasswordInput').value = '';
-  document.getElementById('resetPasswordModal').style.display = 'flex';
-}
-
-document.getElementById('closeResetModal').addEventListener('click', () => {
-  document.getElementById('resetPasswordModal').style.display = 'none';
-});
-document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
-document.getElementById('confirmResetBtn').addEventListener('click', () => {
-  const newPassword = document.getElementById('resetPasswordInput').value;
-  if (!newPassword || newPassword.length < 4) { alert('Enter a password (at least 4 characters).'); return; }
-  const user = mockUsers.find(u => u.id === currentResetUserId);
-  document.getElementById('resetPasswordModal').style.display = 'none';
-  showToast(`Password reset for "${user.name}".`);
-});
-
-renderDealersTable();
-renderUsersTable();  
-checkAuthAndInit();
+  // ---------- Kick things off ----------
+  checkAuthAndInit();
 </script>
 </body>
 </html>

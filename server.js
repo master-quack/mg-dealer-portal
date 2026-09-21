@@ -358,6 +358,79 @@ app.post('/api/submissions/export', financeAuth, (req, res) => {
   }
 });
 
+// --- Finance-facing: export Home summary (dealer counts) to Excel ---
+app.post('/api/summary/export', financeAuth, (req, res) => {
+  console.log('>>> HIT /api/summary/export');
+  try {
+    const XLSX = require('xlsx');
+    const { startDate, endDate, dealers } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'A date range is required to export the summary.' });
+    }
+
+    let rows = db.prepare(`
+      SELECT * FROM submissions
+      WHERE date(created_at) BETWEEN date(?) AND date(?)
+    `).all(startDate, endDate);
+
+    if (dealers && dealers.length > 0) {
+      rows = rows.filter(r => dealers.includes(r.dealer_name));
+    }
+
+    const allDealerRows = db.prepare('SELECT dealer_name FROM dealers ORDER BY dealer_name').all();
+    const dealersToInclude = dealers && dealers.length > 0
+      ? allDealerRows.filter(d => dealers.includes(d.dealer_name))
+      : allDealerRows;
+
+    let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
+
+    const summaryRows = dealersToInclude.map(d => {
+      const dealerRows = rows.filter(r => r.dealer_name === d.dealer_name);
+      const total = dealerRows.length;
+      const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
+      const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
+      const verified = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success').length;
+
+      grandReceived += total;
+      grandPosted += posted;
+      grandRejected += rejected;
+      grandVerified += verified;
+
+      return {
+        'Dealer': d.dealer_name,
+        'Received': total,
+        'Posted in SAP': posted,
+        'Rejected': rejected,
+        'Verified': verified,
+        'Total': total
+      };
+    });
+
+    summaryRows.push({
+      'Dealer': 'TOTAL',
+      'Received': grandReceived,
+      'Posted in SAP': grandPosted,
+      'Rejected': grandRejected,
+      'Verified': grandVerified,
+      'Total': grandReceived
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(summaryRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');
+
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Disposition', 'attachment; filename="dealer_summary_export.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    console.error('Summary export failed:', err);
+    res.status(500).json({ error: 'Export failed.' });
+  }
+});
+
 // --- Finance dashboard page (protected) ---
 
 app.get('/', (req, res) => {
