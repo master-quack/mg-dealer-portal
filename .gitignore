@@ -1,6 +1,11 @@
 node_modules/
 .env
-uploads/*
-!uploads/.gitkeep
+
+# Data now lives under DATA_DIR (/data in production), outside the repo.
 dealer-portal.db
+uploads/
 *backup*
+
+# Dev-only seed/demo scripts — never run in production.
+seed_demo.js
+seed_dealers.js

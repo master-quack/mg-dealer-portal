@@ -3,26 +3,33 @@ const db = require('./db');
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-function createSession() {
+function createSession(financeUserId) {
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
-  db.prepare('INSERT INTO sessions (token, expires_at) VALUES (?, ?)').run(token, expiresAt);
+  db.prepare('INSERT INTO sessions (token, finance_user_id, expires_at) VALUES (?, ?, ?)')
+    .run(token, financeUserId ?? null, expiresAt);
   return { token, expiresAt };
 }
 
-function validateSession(token) {
-  if (!token) return false;
+// Returns the session row (incl. finance_user_id) if valid, otherwise null.
+// Expired sessions are deleted as a side effect.
+function getSession(token) {
+  if (!token) return null;
   const session = db.prepare('SELECT * FROM sessions WHERE token = ?').get(token);
-  if (!session) return false;
+  if (!session) return null;
   if (new Date(session.expires_at) < new Date()) {
     db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
-    return false;
+    return null;
   }
-  return true;
+  return session;
+}
+
+function validateSession(token) {
+  return getSession(token) !== null;
 }
 
 function destroySession(token) {
   db.prepare('DELETE FROM sessions WHERE token = ?').run(token);
 }
 
-module.exports = { createSession, validateSession, destroySession };
+module.exports = { createSession, getSession, validateSession, destroySession };

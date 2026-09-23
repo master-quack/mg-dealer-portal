@@ -1612,11 +1612,16 @@
     title.textContent = `Audit Trail: ${sub.pbo_reference} (${sub.dealer_name})`;
 
     let notes = [];
+    let audit = [];
     try {
-      const res = await fetch(`/api/submissions/${submissionId}/notes`, { credentials: 'same-origin' });
-      if (res.ok) notes = await res.json();
+      const [notesRes, auditRes] = await Promise.all([
+        fetch(`/api/submissions/${submissionId}/notes`, { credentials: 'same-origin' }),
+        fetch(`/api/submissions/${submissionId}/audit`, { credentials: 'same-origin' })
+      ]);
+      if (notesRes.ok) notes = await notesRes.json();
+      if (auditRes.ok) audit = await auditRes.json();
     } catch (err) {
-      console.error('Could not fetch notes', err);
+      console.error('Could not fetch audit history', err);
     }
 
     let html = `
@@ -1626,6 +1631,18 @@
         <div class="timeline-stamp">Updated: ${escapeHtml(sub.updated_at || sub.created_at)}</div>
       </div>
     `;
+
+    if (audit && audit.length > 0) {
+      audit.forEach(a => {
+        html += `
+          <div class="timeline-entry">
+            <div class="timeline-pin success"></div>
+            <div class="timeline-title">Status changed: <strong>${escapeHtml(a.old_status || '—')}</strong> → <strong>${escapeHtml(a.new_status || '—')}</strong></div>
+            <div class="timeline-stamp">By ${escapeHtml(a.username || 'unknown')} · ${escapeHtml(a.created_at)}</div>
+          </div>
+        `;
+      });
+    }
 
     if (notes && notes.length > 0) {
       notes.forEach(n => {

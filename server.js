@@ -4,32 +4,42 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
+const pinoHttp = require('pino-http');
 const db = require('./db');
+const logger = require('./logger');
+const { uploadsDir } = require('./config');
 const cookieParser = require('cookie-parser');
-const { createSession, validateSession, destroySession } = require('./sessions');
+const { createSession, getSession, destroySession } = require('./sessions');
 const { extractPaymentDetails } = require('./extract');
 
 function queueOutboxMessage(dealerName, message) {
   const dealer = db.prepare('SELECT id FROM dealers WHERE dealer_name = ?').get(dealerName);
   if (!dealer) {
-    console.log(`No matching dealer found for "${dealerName}" — skipping notification.`);
+    logger.warn(`No matching dealer found for "${dealerName}" — skipping notification.`);
     return;
   }
   const phone = db.prepare('SELECT phone_number FROM dealer_phones WHERE dealer_id = ? LIMIT 1').get(dealer.id);
   if (!phone) {
-    console.log(`No phone number on file for dealer "${dealerName}" — skipping notification.`);
+    logger.warn(`No phone number on file for dealer "${dealerName}" — skipping notification.`);
     return;
   }
   db.prepare('INSERT INTO outbox (phone_number, message) VALUES (?, ?)').run(phone.phone_number, message);
-  console.log(`Queued outbox message to ${phone.phone_number}: ${message}`);
+  logger.info(`Queued outbox message to ${phone.phone_number}: ${message}`);
 }
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
+
+// Behind the Cloudflare tunnel: trust the proxy so secure cookies and the
+// rate limiter see the real client IP from X-Forwarded-* headers.
+app.set('trust proxy', 1);
 
 // --- File upload config ---
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, unique + path.extname(file.originalname));
@@ -91,20 +101,25 @@ Log in to the dashboard to review and update the status.`
   };
   transporter.sendMail(mailOptions, (err, info) => {
     if (err) {
-      console.error('Email send failed:', err.message);
+      logger.error({ err }, 'Email send failed');
     } else {
-      console.log('Notification email sent:', info.messageId);
+      logger.info({ messageId: info.messageId }, 'Notification email sent');
     }
   });
 }
 
-// --- Basic auth middleware for finance dashboard ---
+// --- Session auth middleware for finance dashboard ---
 function financeAuth(req, res, next) {
   const token = req.cookies.session;
-  if (validateSession(token)) {
-    return next();
+  const session = getSession(token);
+  if (!session) {
+    return res.status(401).json({ error: 'Not authenticated' });
   }
-  return res.status(401).json({ error: 'Not authenticated' });
+  const user = session.finance_user_id
+    ? db.prepare('SELECT id, name, username FROM finance_users WHERE id = ?').get(session.finance_user_id)
+    : null;
+  req.financeUser = user || { id: null, name: null, username: 'unknown' };
+  return next();
 }
 
 // --- Basic auth middleware for dealers ---
@@ -125,10 +140,11 @@ function dealerAuth(req, res, next) {
   return res.status(401).send('Invalid credentials.');
 }
 
+app.use(pinoHttp({ logger }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/uploads', financeAuth, express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', financeAuth, express.static(uploadsDir));
 
 // --- Dealer-facing: the upload form itself (protected) ---
 // Disconnected: dealer submissions now come in via WhatsApp (dealer-whatsapp project).
@@ -140,20 +156,38 @@ app.use('/uploads', financeAuth, express.static(path.join(__dirname, 'uploads'))
 
 // Serve remaining static assets (CSS/JS if split out later) without auth on the root
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
-// --- Login: validates credentials, creates session, sets cookie ---
-app.post('/api/login', (req, res) => {
+// --- Rate limiter for login: guards against brute-force attempts ---
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                  // 10 attempts per IP per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Please try again later.' }
+});
+
+// --- Login: validates credentials against finance_users, creates session, sets cookie ---
+app.post('/api/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
-  if (username === process.env.FINANCE_USER && password === process.env.FINANCE_PASSWORD) {
-    const { token, expiresAt } = createSession();
-    res.cookie('session', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      expires: new Date(expiresAt)
-    });
-    return res.json({ success: true });
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required.' });
   }
-  return res.status(401).json({ error: 'Incorrect username or password.' });
+
+  const user = db.prepare('SELECT * FROM finance_users WHERE username = ?').get(username);
+  const passwordOk = user && await bcrypt.compare(password, user.password);
+  if (!user || !passwordOk) {
+    logger.warn({ username }, 'Failed login attempt');
+    return res.status(401).json({ error: 'Incorrect username or password.' });
+  }
+
+  const { token, expiresAt } = createSession(user.id);
+  res.cookie('session', token, {
+    httpOnly: true,
+    secure: isProd,       // requires HTTPS in production; allows http for local dev
+    sameSite: 'strict',
+    expires: new Date(expiresAt)
+  });
+  logger.info({ username: user.username, userId: user.id }, 'Finance user logged in');
+  return res.json({ success: true });
 });
 
 // --- Logout: destroys session, clears cookie ---
@@ -260,12 +294,27 @@ app.patch('/api/submissions/:id/status', financeAuth, (req, res) => {
     UPDATE submissions SET status = ?, updated_at = datetime('now') WHERE id = ?
   `).run(status, req.params.id);
 
+  // Audit: record who changed the status and from what to what.
+  db.prepare(`
+    INSERT INTO audit_log (submission_id, finance_user_id, username, action, old_status, new_status)
+    VALUES (?, ?, ?, 'status_change', ?, ?)
+  `).run(req.params.id, req.financeUser.id, req.financeUser.username, submission.status, status);
+
   if (status === 'Posted in SAP' || status === 'Rejected') {
     const message = `Your PBO ${submission.pbo_reference} has been ${status}.`;
     queueOutboxMessage(submission.dealer_name, message);
   }
 
   res.json({ success: true });
+});
+
+// --- Finance-facing: audit history (status changes) for a submission ---
+app.get('/api/submissions/:id/audit', financeAuth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT username, action, old_status, new_status, created_at
+    FROM audit_log WHERE submission_id = ? ORDER BY created_at DESC
+  `).all(req.params.id);
+  res.json(rows);
 });
 
 // --- Finance-facing: add a note to a submission (logged, notifies dealer) ---
@@ -353,14 +402,13 @@ app.post('/api/submissions/export', financeAuth, (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
   } catch (err) {
-    console.error('Export failed:', err);
+    logger.error({ err }, 'Export failed');
     res.status(500).json({ error: 'Export failed.' });
   }
 });
 
 // --- Finance-facing: export Home summary (dealer counts) to Excel ---
 app.post('/api/summary/export', financeAuth, (req, res) => {
-  console.log('>>> HIT /api/summary/export');
   try {
     const XLSX = require('xlsx');
     const { startDate, endDate, dealers } = req.body;
@@ -426,7 +474,7 @@ app.post('/api/summary/export', financeAuth, (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
   } catch (err) {
-    console.error('Summary export failed:', err);
+    logger.error({ err }, 'Summary export failed');
     res.status(500).json({ error: 'Export failed.' });
   }
 });
@@ -437,6 +485,36 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'finance.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Dealer portal running on port ${PORT}`);
+// --- Global error handler: log details, return a generic message ---
+app.use((err, req, res, next) => {
+  (req.log || logger).error({ err }, 'Unhandled request error');
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Something went wrong.' });
+});
+
+const server = app.listen(PORT, () => {
+  logger.info(`Dealer portal running on port ${PORT}`);
+});
+
+// --- Graceful shutdown: stop accepting connections, close the DB, then exit ---
+function shutdown(signal) {
+  logger.info(`Received ${signal}, shutting down gracefully...`);
+  server.close(() => {
+    try { db.close(); } catch (e) { /* already closed */ }
+    logger.info('Shutdown complete.');
+    process.exit(0);
+  });
+  // Force-exit if connections don't drain in time.
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason) => {
+  logger.fatal({ err: reason }, 'Unhandled promise rejection');
+  process.exit(1);
+});
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'Uncaught exception');
+  process.exit(1);
 });

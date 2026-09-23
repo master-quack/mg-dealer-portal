@@ -1,7 +1,7 @@
 const Database = require('better-sqlite3');
-const path = require('path');
+const { dbPath } = require('./config');
 
-const db = new Database(path.join(__dirname, 'dealer-portal.db'));
+const db = new Database(dbPath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS submissions (
