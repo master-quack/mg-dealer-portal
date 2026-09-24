@@ -35,7 +35,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 // Behind the Cloudflare tunnel: trust the proxy so secure cookies and the
 // rate limiter see the real client IP from X-Forwarded-* headers.
-app.set('trust proxy', 1);
+app.set('trust proxy', Number(process.env.TRUST_PROXY) || 0);
 
 // --- File upload config ---
 const storage = multer.diskStorage({
@@ -118,7 +118,11 @@ function financeAuth(req, res, next) {
   const user = session.finance_user_id
     ? db.prepare('SELECT id, name, username FROM finance_users WHERE id = ?').get(session.finance_user_id)
     : null;
-  req.financeUser = user || { id: null, name: null, username: 'unknown' };
+  if (!user) {
+    destroySession(token);
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  req.financeUser = user;
   return next();
 }
 
@@ -140,7 +144,14 @@ function dealerAuth(req, res, next) {
   return res.status(401).send('Invalid credentials.');
 }
 
-app.use(pinoHttp({ logger }));
+app.use(pinoHttp({
+  logger,
+  autoLogging: { ignore: (req) => req.url === "/api/submissions" && req.method === "GET" },
+  serializers: {
+    req: (req) => ({ id: req.id, method: req.method, url: req.url }),
+    res: (res) => ({ statusCode: res.statusCode })
+  }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -182,7 +193,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
   const { token, expiresAt } = createSession(user.id);
   res.cookie('session', token, {
     httpOnly: true,
-    secure: isProd,       // requires HTTPS in production; allows http for local dev
+    secure: process.env.COOKIE_SECURE !== 'false', // HTTPS only unless COOKIE_SECURE=false
     sameSite: 'strict',
     expires: new Date(expiresAt)
   });
@@ -315,6 +326,137 @@ app.get('/api/submissions/:id/audit', financeAuth, (req, res) => {
     FROM audit_log WHERE submission_id = ? ORDER BY created_at DESC
   `).all(req.params.id);
   res.json(rows);
+});
+
+// ============================================================
+// Admin: dealers, phone numbers, and finance users
+// ============================================================
+
+// --- List dealers with their phone numbers ---
+app.get('/api/admin/dealers', financeAuth, (req, res) => {
+  const dealers = db.prepare('SELECT id, dealer_name, sap_code FROM dealers ORDER BY dealer_name').all();
+  const phoneStmt = db.prepare('SELECT phone_number FROM dealer_phones WHERE dealer_id = ? ORDER BY id');
+  for (const d of dealers) {
+    d.phones = phoneStmt.all(d.id).map(p => p.phone_number);
+  }
+  res.json(dealers);
+});
+
+// --- Add a dealer (with optional phone numbers) ---
+app.post('/api/admin/dealers', financeAuth, (req, res) => {
+  const dealer_name = (req.body.dealer_name || '').trim();
+  const sap_code = (req.body.sap_code || '').trim();
+  const phones = Array.isArray(req.body.phones) ? req.body.phones : [];
+  if (!dealer_name || !sap_code) {
+    return res.status(400).json({ error: 'Dealer name and SAP code are required.' });
+  }
+
+  const exists = db.prepare('SELECT id FROM dealers WHERE dealer_name = ? OR sap_code = ?').get(dealer_name, sap_code);
+  if (exists) {
+    return res.status(409).json({ error: 'A dealer with that name or SAP code already exists.' });
+  }
+
+  const create = db.transaction(() => {
+    const result = db.prepare('INSERT INTO dealers (dealer_name, sap_code) VALUES (?, ?)').run(dealer_name, sap_code);
+    const dealerId = result.lastInsertRowid;
+    const addPhone = db.prepare('INSERT INTO dealer_phones (dealer_id, phone_number) VALUES (?, ?)');
+    for (const p of phones) {
+      const num = String(p).trim();
+      if (num) addPhone.run(dealerId, num);
+    }
+    return dealerId;
+  });
+  const id = create();
+  logger.info({ dealer_name, by: req.financeUser.username }, 'Dealer added');
+  res.json({ success: true, id });
+});
+
+// --- Remove a dealer (and its phone numbers) ---
+app.delete('/api/admin/dealers/:id', financeAuth, (req, res) => {
+  const dealer = db.prepare('SELECT * FROM dealers WHERE id = ?').get(req.params.id);
+  if (!dealer) return res.status(404).json({ error: 'Dealer not found.' });
+  db.transaction(() => {
+    db.prepare('DELETE FROM dealer_phones WHERE dealer_id = ?').run(dealer.id);
+    db.prepare('DELETE FROM dealers WHERE id = ?').run(dealer.id);
+  })();
+  logger.info({ dealer_name: dealer.dealer_name, by: req.financeUser.username }, 'Dealer removed');
+  res.json({ success: true });
+});
+
+// --- Add a phone number to a dealer ---
+app.post('/api/admin/dealers/:id/phones', financeAuth, (req, res) => {
+  const phone_number = (req.body.phone_number || '').trim();
+  if (!phone_number) return res.status(400).json({ error: 'Phone number is required.' });
+  const dealer = db.prepare('SELECT id FROM dealers WHERE id = ?').get(req.params.id);
+  if (!dealer) return res.status(404).json({ error: 'Dealer not found.' });
+  const dup = db.prepare('SELECT id FROM dealer_phones WHERE dealer_id = ? AND phone_number = ?').get(dealer.id, phone_number);
+  if (dup) return res.status(409).json({ error: 'This number is already on file.' });
+  db.prepare('INSERT INTO dealer_phones (dealer_id, phone_number) VALUES (?, ?)').run(dealer.id, phone_number);
+  res.json({ success: true });
+});
+
+// --- Remove a phone number from a dealer ---
+app.delete('/api/admin/dealers/:id/phones', financeAuth, (req, res) => {
+  const phone_number = (req.body.phone_number || '').trim();
+  if (!phone_number) return res.status(400).json({ error: 'Phone number is required.' });
+  db.prepare('DELETE FROM dealer_phones WHERE dealer_id = ? AND phone_number = ?').run(req.params.id, phone_number);
+  res.json({ success: true });
+});
+
+// --- List finance users (never returns password hashes) ---
+app.get('/api/admin/users', financeAuth, (req, res) => {
+  const rows = db.prepare('SELECT id, name, username, email, phone FROM finance_users ORDER BY name').all();
+  res.json(rows);
+});
+
+// --- Add a finance user (bcrypt-hashed password) ---
+app.post('/api/admin/users', financeAuth, async (req, res) => {
+  const name = (req.body.name || '').trim();
+  const username = (req.body.username || '').trim();
+  const password = req.body.password || '';
+  const email = (req.body.email || '').trim();
+  const phone = (req.body.phone || '').trim();
+  if (!name || !username || !password) {
+    return res.status(400).json({ error: 'Name, username, and password are required.' });
+  }
+  const exists = db.prepare('SELECT id FROM finance_users WHERE username = ?').get(username);
+  if (exists) return res.status(409).json({ error: 'That username is already taken.' });
+
+  const hash = await bcrypt.hash(password, 12);
+  const result = db.prepare(`
+    INSERT INTO finance_users (name, username, password, email, phone) VALUES (?, ?, ?, ?, ?)
+  `).run(name, username, hash, email || null, phone || null);
+  logger.info({ username, by: req.financeUser.username }, 'Finance user added');
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// --- Remove a finance user (never remove the last one) ---
+app.delete('/api/admin/users/:id', financeAuth, (req, res) => {
+  const user = db.prepare('SELECT * FROM finance_users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  const count = db.prepare('SELECT COUNT(*) c FROM finance_users').get().c;
+  if (count <= 1) {
+    return res.status(400).json({ error: 'Cannot remove the last finance user — at least one must remain.' });
+  }
+  db.prepare('DELETE FROM sessions WHERE finance_user_id = ?').run(user.id);
+  db.prepare('DELETE FROM finance_users WHERE id = ?').run(user.id);
+  logger.info({ username: user.username, by: req.financeUser.username }, 'Finance user removed');
+  res.json({ success: true });
+});
+
+// --- Reset a finance user's password ---
+app.post('/api/admin/users/:id/password', financeAuth, async (req, res) => {
+  const password = req.body.password || '';
+  if (!password || password.length < 10) {
+    return res.status(400).json({ error: 'Password must be at least 10 characters.' });
+  }
+  const user = db.prepare('SELECT id, username FROM finance_users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  const hash = await bcrypt.hash(password, 12);
+  db.prepare('UPDATE finance_users SET password = ? WHERE id = ?').run(hash, user.id);
+  db.prepare('DELETE FROM sessions WHERE finance_user_id = ?').run(user.id);
+  logger.info({ username: user.username, by: req.financeUser.username }, 'Finance user password reset');
+  res.json({ success: true });
 });
 
 // --- Finance-facing: add a note to a submission (logged, notifies dealer) ---

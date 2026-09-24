@@ -992,11 +992,11 @@
           <h3>Add Finance User</h3>
           <div class="admin-form-field">
             <label>Full Name</label>
-            <input type="text" id="newUserName" placeholder="e.g. Ayesha Khan">
+            <input type="text" id="newUserName" placeholder="e.g. Bilal Ahmed">
           </div>
           <div class="admin-form-field">
             <label>Username</label>
-            <input type="text" id="newUserUsername" placeholder="e.g. ayesha.khan">
+            <input type="text" id="newUserUsername" placeholder="e.g. bilal.ahmed">
           </div>
           <div class="admin-form-field">
             <label>Password</label>
@@ -1004,7 +1004,7 @@
           </div>
           <div class="admin-form-field">
             <label>Email</label>
-            <input type="email" id="newUserEmail" placeholder="ayesha@mgpakistan.com">
+            <input type="email" id="newUserEmail" placeholder="bilal@mgpakistan.com">
           </div>
           <div class="admin-form-field">
             <label>Phone (WhatsApp)</label>
@@ -1169,6 +1169,7 @@
     });
     document.title = tabTitles[tabName] || 'Dashboard';
     if (tabName === 'home') renderSummaryTable();
+    if (tabName === 'admin') { loadAdminDealers(); loadAdminUsers(); }
   }
 
   document.querySelectorAll('.sidebar__item[data-tab]').forEach(item => {
@@ -1878,22 +1879,42 @@
     document.getElementById('statTotal').textContent = fmtGrand(grandReceived);
   }
 
-  // ================= ADMIN TAB (mock data for preview) =================
-  let mockDealers = [
-    { id: 1, dealer_name: 'MG Capital', sap_code: '12000001', phones: ['923001111111', '923002222222'] },
-    { id: 2, dealer_name: 'MG Lounge', sap_code: '12000003', phones: ['923003333333'] },
-    { id: 3, dealer_name: 'MG City', sap_code: '12000002', phones: [] },
-  ];
+  // ================= ADMIN TAB (live, backed by /api/admin) =================
+  let adminDealers = [];
+  let adminUsers = [];
 
-  let mockUsers = [
-    { id: 1, name: 'Finance Admin', username: 'finance', email: '', phone: '' },
-  ];
+  async function adminApi(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* no body */ }
+    if (!res.ok) throw new Error((data && data.error) || `Request failed (${res.status})`);
+    return data;
+  }
+
+  async function loadAdminDealers() {
+    try {
+      adminDealers = await adminApi('/api/admin/dealers');
+      renderDealersTable();
+    } catch (err) { showToast(err.message); }
+  }
+
+  async function loadAdminUsers() {
+    try {
+      adminUsers = await adminApi('/api/admin/users');
+      renderUsersTable();
+    } catch (err) { showToast(err.message); }
+  }
 
   function renderDealersTable() {
-    document.getElementById('adminDealerCount').textContent = mockDealers.length;
-    document.getElementById('dealersTbody').innerHTML = mockDealers.map(d => {
-      const phonesHtml = d.phones.length > 0
-        ? d.phones.map(p => `<span class="admin-phone-tag">${escapeHtml(p)}</span>`).join('')
+    document.getElementById('adminDealerCount').textContent = adminDealers.length;
+    document.getElementById('dealersTbody').innerHTML = adminDealers.map(d => {
+      const phones = d.phones || [];
+      const phonesHtml = phones.length > 0
+        ? phones.map(p => `<span class="admin-phone-tag">${escapeHtml(p)}</span>`).join('')
         : `<span class="admin-phone-empty">No numbers on file</span>`;
       return `
         <tr>
@@ -1912,8 +1933,8 @@
   }
 
   function renderUsersTable() {
-    document.getElementById('adminUserCount').textContent = mockUsers.length;
-    document.getElementById('usersTbody').innerHTML = mockUsers.map(u => `
+    document.getElementById('adminUserCount').textContent = adminUsers.length;
+    document.getElementById('usersTbody').innerHTML = adminUsers.map(u => `
       <tr>
         <td>${escapeHtml(u.name)}</td>
         <td>${escapeHtml(u.username)}</td>
@@ -1941,31 +1962,35 @@
   document.getElementById('addDealerModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
   });
-  document.getElementById('saveDealerBtn').addEventListener('click', () => {
+  document.getElementById('saveDealerBtn').addEventListener('click', async () => {
     const name = document.getElementById('newDealerName').value.trim();
     const sap = document.getElementById('newDealerSapCode').value.trim();
     const phonesRaw = document.getElementById('newDealerPhones').value.trim();
     if (!name || !sap) { alert('Dealer name and SAP code are required.'); return; }
     const phones = phonesRaw ? phonesRaw.split(',').map(p => p.trim()).filter(Boolean) : [];
-    mockDealers.push({ id: Date.now(), dealer_name: name, sap_code: sap, phones });
-    renderDealersTable();
-    document.getElementById('addDealerModal').style.display = 'none';
-    showToast(`Dealer "${name}" added.`);
+    try {
+      await adminApi('/api/admin/dealers', { method: 'POST', body: JSON.stringify({ dealer_name: name, sap_code: sap, phones }) });
+      document.getElementById('addDealerModal').style.display = 'none';
+      await loadAdminDealers();
+      showToast(`Dealer "${name}" added.`);
+    } catch (err) { alert(err.message); }
   });
 
-  function removeDealer(id) {
-    const dealer = mockDealers.find(d => d.id === id);
+  async function removeDealer(id) {
+    const dealer = adminDealers.find(d => d.id === id);
     if (!confirm(`Remove dealer "${dealer.dealer_name}"? This cannot be undone.`)) return;
-    mockDealers = mockDealers.filter(d => d.id !== id);
-    renderDealersTable();
-    showToast(`Dealer "${dealer.dealer_name}" removed.`);
+    try {
+      await adminApi(`/api/admin/dealers/${id}`, { method: 'DELETE' });
+      await loadAdminDealers();
+      showToast(`Dealer "${dealer.dealer_name}" removed.`);
+    } catch (err) { alert(err.message); }
   }
 
   let currentPhonesDealerId = null;
 
   function openPhonesModal(dealerId) {
     currentPhonesDealerId = dealerId;
-    const dealer = mockDealers.find(d => d.id === dealerId);
+    const dealer = adminDealers.find(d => d.id === dealerId);
     document.getElementById('managePhonesTitle').textContent = `Manage Numbers — ${dealer.dealer_name}`;
     renderPhonesList();
     document.getElementById('newPhoneInput').value = '';
@@ -1973,38 +1998,41 @@
   }
 
   function renderPhonesList() {
-    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
+    const dealer = adminDealers.find(d => d.id === currentPhonesDealerId);
     const list = document.getElementById('phonesList');
-    if (dealer.phones.length === 0) {
+    const phones = (dealer && dealer.phones) || [];
+    if (phones.length === 0) {
       list.innerHTML = `<div class="admin-phone-empty">No numbers on file yet.</div>`;
       return;
     }
-    list.innerHTML = dealer.phones.map(p => `
+    list.innerHTML = phones.map(p => `
       <div class="phone-list-item">
         <span>${escapeHtml(p)}</span>
-        <button onclick="removePhone('${p}')">Remove</button>
+        <button onclick="removePhone('${escapeHtml(p)}')">Remove</button>
       </div>
     `).join('');
   }
 
-  function removePhone(phone) {
-    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
-    dealer.phones = dealer.phones.filter(p => p !== phone);
-    renderPhonesList();
-    renderDealersTable();
+  async function removePhone(phone) {
+    try {
+      await adminApi(`/api/admin/dealers/${currentPhonesDealerId}/phones`, { method: 'DELETE', body: JSON.stringify({ phone_number: phone }) });
+      await loadAdminDealers();
+      renderPhonesList();
+      showToast('Phone number removed.');
+    } catch (err) { alert(err.message); }
   }
 
-  document.getElementById('addPhoneBtn').addEventListener('click', () => {
+  document.getElementById('addPhoneBtn').addEventListener('click', async () => {
     const input = document.getElementById('newPhoneInput');
     const phone = input.value.trim();
     if (!phone) { alert('Enter a phone number first.'); return; }
-    const dealer = mockDealers.find(d => d.id === currentPhonesDealerId);
-    if (dealer.phones.includes(phone)) { alert('This number is already on file.'); return; }
-    dealer.phones.push(phone);
-    input.value = '';
-    renderPhonesList();
-    renderDealersTable();
-    showToast('Phone number added.');
+    try {
+      await adminApi(`/api/admin/dealers/${currentPhonesDealerId}/phones`, { method: 'POST', body: JSON.stringify({ phone_number: phone }) });
+      input.value = '';
+      await loadAdminDealers();
+      renderPhonesList();
+      showToast('Phone number added.');
+    } catch (err) { alert(err.message); }
   });
 
   document.getElementById('closePhonesModal').addEventListener('click', () => {
@@ -2028,33 +2056,37 @@
   document.getElementById('addUserModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
   });
-  document.getElementById('saveUserBtn').addEventListener('click', () => {
+  document.getElementById('saveUserBtn').addEventListener('click', async () => {
     const name = document.getElementById('newUserName').value.trim();
     const username = document.getElementById('newUserUsername').value.trim();
     const password = document.getElementById('newUserPassword').value;
     const email = document.getElementById('newUserEmail').value.trim();
     const phone = document.getElementById('newUserPhone').value.trim();
     if (!name || !username || !password) { alert('Name, username, and password are required.'); return; }
-    mockUsers.push({ id: Date.now(), name, username, email, phone });
-    renderUsersTable();
-    document.getElementById('addUserModal').style.display = 'none';
-    showToast(`User "${name}" added.`);
+    try {
+      await adminApi('/api/admin/users', { method: 'POST', body: JSON.stringify({ name, username, password, email, phone }) });
+      document.getElementById('addUserModal').style.display = 'none';
+      await loadAdminUsers();
+      showToast(`User "${name}" added.`);
+    } catch (err) { alert(err.message); }
   });
 
-  function removeUser(id) {
-    if (mockUsers.length <= 1) { alert('Cannot remove the last finance user — at least one must remain.'); return; }
-    const user = mockUsers.find(u => u.id === id);
+  async function removeUser(id) {
+    if (adminUsers.length <= 1) { alert('Cannot remove the last finance user — at least one must remain.'); return; }
+    const user = adminUsers.find(u => u.id === id);
     if (!confirm(`Remove user "${user.name}"?`)) return;
-    mockUsers = mockUsers.filter(u => u.id !== id);
-    renderUsersTable();
-    showToast(`User "${user.name}" removed.`);
+    try {
+      await adminApi(`/api/admin/users/${id}`, { method: 'DELETE' });
+      await loadAdminUsers();
+      showToast(`User "${user.name}" removed.`);
+    } catch (err) { alert(err.message); }
   }
 
   let currentResetUserId = null;
 
   function openResetModal(userId) {
     currentResetUserId = userId;
-    const user = mockUsers.find(u => u.id === userId);
+    const user = adminUsers.find(u => u.id === userId);
     document.getElementById('resetPasswordTitle').textContent = `Reset Password — ${user.name}`;
     document.getElementById('resetPasswordInput').value = '';
     document.getElementById('resetPasswordModal').style.display = 'flex';
@@ -2066,16 +2098,16 @@
   document.getElementById('resetPasswordModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
   });
-  document.getElementById('confirmResetBtn').addEventListener('click', () => {
+  document.getElementById('confirmResetBtn').addEventListener('click', async () => {
     const newPassword = document.getElementById('resetPasswordInput').value;
     if (!newPassword || newPassword.length < 4) { alert('Enter a password (at least 4 characters).'); return; }
-    const user = mockUsers.find(u => u.id === currentResetUserId);
-    document.getElementById('resetPasswordModal').style.display = 'none';
-    showToast(`Password reset for "${user.name}".`);
+    const user = adminUsers.find(u => u.id === currentResetUserId);
+    try {
+      await adminApi(`/api/admin/users/${currentResetUserId}/password`, { method: 'POST', body: JSON.stringify({ password: newPassword }) });
+      document.getElementById('resetPasswordModal').style.display = 'none';
+      showToast(`Password reset for "${user.name}".`);
+    } catch (err) { alert(err.message); }
   });
-
-  renderDealersTable();
-  renderUsersTable();
 
   // ---------- Kick things off ----------
   checkAuthAndInit();

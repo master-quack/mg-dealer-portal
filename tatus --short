@@ -1,0 +1,33 @@
+[1mdiff --git a/server.js.pre-session-fix-backup b/server.js[m
+[1mindex 67d16aa..24c7ec0 100644[m
+[1m--- a/server.js.pre-session-fix-backup[m
+[1m+++ b/server.js[m
+[36m@@ -118,7 +118,11 @@[m [mfunction financeAuth(req, res, next) {[m
+   const user = session.finance_user_id[m
+     ? db.prepare('SELECT id, name, username FROM finance_users WHERE id = ?').get(session.finance_user_id)[m
+     : null;[m
+[31m-  req.financeUser = user || { id: null, name: null, username: 'unknown' };[m
+[32m+[m[32m  if (!user) {[m
+[32m+[m[32m    destroySession(token);[m
+[32m+[m[32m    return res.status(401).json({ error: 'Not authenticated' });[m
+[32m+[m[32m  }[m
+[32m+[m[32m  req.financeUser = user;[m
+   return next();[m
+ }[m
+ [m
+[36m@@ -434,6 +438,7 @@[m [mapp.delete('/api/admin/users/:id', financeAuth, (req, res) => {[m
+   if (count <= 1) {[m
+     return res.status(400).json({ error: 'Cannot remove the last finance user — at least one must remain.' });[m
+   }[m
+[32m+[m[32m  db.prepare('DELETE FROM sessions WHERE finance_user_id = ?').run(user.id);[m
+   db.prepare('DELETE FROM finance_users WHERE id = ?').run(user.id);[m
+   logger.info({ username: user.username, by: req.financeUser.username }, 'Finance user removed');[m
+   res.json({ success: true });[m
+[36m@@ -449,6 +454,7 @@[m [mapp.post('/api/admin/users/:id/password', financeAuth, async (req, res) => {[m
+   if (!user) return res.status(404).json({ error: 'User not found.' });[m
+   const hash = await bcrypt.hash(password, 12);[m
+   db.prepare('UPDATE finance_users SET password = ? WHERE id = ?').run(hash, user.id);[m
+[32m+[m[32m  db.prepare('DELETE FROM sessions WHERE finance_user_id = ?').run(user.id);[m
+   logger.info({ username: user.username, by: req.financeUser.username }, 'Finance user password reset');[m
+   res.json({ success: true });[m
+ });[m
