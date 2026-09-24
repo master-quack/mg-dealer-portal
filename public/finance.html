@@ -622,6 +622,127 @@
   .audit-input:focus { border-color: #1a73e8; }
   .audit-send-btn { padding: 0 16px; background: #0b2545; color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; }
   .audit-send-btn:hover { background: #133b6d; }
+
+  /* ============================================================
+     MANUAL SUBMISSION FAB + PANEL  (all styles for this feature
+     live in this one block; tweak the palette below to restyle)
+     ============================================================ */
+  .ms-scope {
+    --ms-accent: var(--navy);
+    --ms-accent-hover: var(--navy-deep);
+    --ms-surface: #ffffff;
+    --ms-border: #dfe4ec;
+    --ms-text: var(--ink);
+    --ms-muted: #6b7688;
+    --ms-error: #c0392b;
+    --ms-success: #125c40;
+    --ms-shadow: 0 12px 32px rgba(16, 24, 40, .18);
+    --ms-radius: 14px;
+    --ms-gap: 24px;            /* distance the FAB sits from the screen edges */
+    --ms-btn-size: 56px;
+  }
+  /* --- The round trigger button --- */
+  .ms-fab {
+    position: fixed;
+    right: var(--ms-gap);
+    bottom: var(--ms-gap);
+    width: var(--ms-btn-size);
+    height: var(--ms-btn-size);
+    border-radius: 50%;
+    border: none;
+    background: var(--ms-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--ms-shadow);
+    z-index: 90;
+    transition: background .15s ease, transform .15s ease;
+  }
+  .ms-fab:hover { background: var(--ms-accent-hover); transform: translateY(-1px); }
+  .ms-fab svg { width: 24px; height: 24px; }
+  .ms-fab .ms-icon-close { display: none; }
+  .ms-fab.ms-open .ms-icon-open { display: none; }
+  .ms-fab.ms-open .ms-icon-close { display: block; }
+  /* --- The panel, anchored above the button, growing upward --- */
+  .ms-panel {
+    position: fixed;
+    right: var(--ms-gap);
+    bottom: calc(var(--ms-gap) + var(--ms-btn-size) + 12px);
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - var(--ms-gap) - var(--ms-btn-size) - 40px);
+    overflow-y: auto;
+    background: var(--ms-surface);
+    color: var(--ms-text);
+    border: 1px solid var(--ms-border);
+    border-radius: var(--ms-radius);
+    box-shadow: var(--ms-shadow);
+    padding: 18px;
+    z-index: 90;
+    transform-origin: bottom right;
+    /* closed state */
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+  }
+  .ms-panel.ms-open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s;
+  }
+  .ms-title { font-size: 15px; font-weight: 700; color: var(--ms-accent); margin: 0 0 14px; }
+  .ms-field { margin-bottom: 12px; }
+  .ms-label { display: block; font-size: 12px; font-weight: 600; color: var(--ms-muted); margin-bottom: 5px; }
+  .ms-input, .ms-select, .ms-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 11px;
+    font: 13px/1.4 inherit;
+    color: var(--ms-text);
+    background: #fff;
+    border: 1px solid var(--ms-border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .ms-input:focus, .ms-select:focus, .ms-textarea:focus {
+    border-color: var(--ms-accent);
+    box-shadow: 0 0 0 3px rgba(16, 42, 76, .1);
+  }
+  .ms-textarea { resize: vertical; min-height: 62px; }
+  .ms-select:disabled { background: #f1f3f6; color: var(--ms-muted); cursor: not-allowed; }
+  .ms-dealer-row { display: flex; align-items: center; gap: 10px; }
+  .ms-dealer-row .ms-select { flex: 1; }
+  .ms-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ms-muted); white-space: nowrap; cursor: pointer; user-select: none; }
+  .ms-check input { width: 15px; height: 15px; accent-color: var(--ms-accent); cursor: pointer; }
+  .ms-file { font-size: 12px; color: var(--ms-muted); }
+  .ms-submit {
+    width: 100%;
+    height: 42px;
+    margin-top: 4px;
+    border: none;
+    border-radius: 9px;
+    background: var(--ms-accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .ms-submit:hover:not(:disabled) { background: var(--ms-accent-hover); }
+  .ms-submit:disabled { background: #9aa4b4; cursor: not-allowed; }
+  .ms-status { min-height: 16px; margin-top: 10px; font-size: 12px; text-align: center; }
+  .ms-status.ms-status--error { color: var(--ms-error); }
+  .ms-status.ms-status--success { color: var(--ms-success); }
+  @media (prefers-reduced-motion: reduce) {
+    .ms-fab, .ms-panel { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -1054,6 +1175,56 @@
 
     </main>
   </div>
+
+  <!-- ============ MANUAL SUBMISSION FAB + PANEL ============ -->
+  <div class="ms-scope">
+    <div class="ms-panel" id="msPanel" role="dialog" aria-label="New submission" aria-hidden="true">
+      <p class="ms-title">New submission</p>
+      <form id="msForm">
+        <div class="ms-field">
+          <label class="ms-label" for="msPbo">PBO reference</label>
+          <input class="ms-input" id="msPbo" name="pbo_reference" type="text" autocomplete="off" required>
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msDealer">Dealer</label>
+          <div class="ms-dealer-row">
+            <select class="ms-select" id="msDealer" name="dealer_name">
+              <option value="">Select dealer…</option>
+            </select>
+            <label class="ms-check">
+              <input type="checkbox" id="msPostAsMg"> Post as MG Finance
+            </label>
+          </div>
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msAmount">Amount <span style="font-weight:400;">(optional)</span></label>
+          <input class="ms-input" id="msAmount" name="amount" type="number" step="0.01" min="0" autocomplete="off">
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msPaymentType">Payment type <span style="font-weight:400;">(optional)</span></label>
+          <input class="ms-input" id="msPaymentType" name="payment_type" type="text" autocomplete="off">
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msFile">Attachment</label>
+          <input class="ms-file" id="msFile" name="screenshot" type="file" accept=".png,.jpg,.jpeg,.pdf">
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msNotes">Notes</label>
+          <textarea class="ms-textarea" id="msNotes" name="notes"></textarea>
+        </div>
+        <button type="submit" class="ms-submit" id="msSubmit">Submit</button>
+        <div class="ms-status" id="msStatus" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+    <button class="ms-fab" id="msFab" type="button" aria-expanded="false" aria-controls="msPanel" title="New submission">
+      <svg class="ms-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+      </svg>
+      <svg class="ms-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <div class="portal-toast" id="portalToast" role="status" aria-live="polite"></div>
@@ -1183,6 +1354,16 @@
     allDealers = await res.json();
     populateDealerCheckboxes('dealerCheckboxList', selectedDealersSubmissions, () => { updateDealerLabel('dealerDropdownLabel', selectedDealersSubmissions); applyFilters(); });
     populateDealerCheckboxes('homeDealerCheckboxList', selectedDealersHome, () => { updateDealerLabel('homeDealerDropdownLabel', selectedDealersHome); renderSummaryTable(); });
+    populateMsDealers();
+  }
+
+  function populateMsDealers() {
+    const select = document.getElementById('msDealer');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Select dealer…</option>' +
+      allDealers.map(d => `<option value="${escapeHtml(d.dealer_name)}">${escapeHtml(d.dealer_name)}</option>`).join('');
+    if (current) select.value = current;
   }
 
   function populateDealerCheckboxes(containerId, selectedSet, onChange) {
@@ -1840,10 +2021,15 @@
     const tbody = document.getElementById('summaryTbody');
     let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
 
-    const dealersToShow = allDealers;
+    // Registered dealers plus any dealer_name that only exists in submissions
+    // (e.g. 'MG Finance', which is deliberately not in the dealers table).
+    const registeredNames = allDealers.map(d => d.dealer_name);
+    const extraNames = [...new Set(filtered.map(row => row.dealer_name))]
+      .filter(name => !registeredNames.includes(name)).sort();
+    const dealersToShow = [...registeredNames, ...extraNames];
 
-    tbody.innerHTML = dealersToShow.map(dealer => {
-      const dealerRows = filtered.filter(row => row.dealer_name === dealer.dealer_name);
+    tbody.innerHTML = dealersToShow.map(dealerName => {
+      const dealerRows = filtered.filter(row => row.dealer_name === dealerName);
       const total = dealerRows.length;
       const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
       const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
@@ -1856,7 +2042,7 @@
       const fmt = n => n === 0 ? '-' : n;
       return `
         <tr>
-          <td>${escapeHtml(dealer.dealer_name)}</td>
+          <td>${escapeHtml(dealerName)}</td>
           <td class="count-received">${fmt(total)}</td>
           <td class="count-posted">${fmt(posted)}</td>
           <td class="count-rejected">${fmt(rejected)}</td>
@@ -2108,6 +2294,104 @@
       showToast(`Password reset for "${user.name}".`);
     } catch (err) { alert(err.message); }
   });
+
+  // ---------- Manual submission FAB + panel ----------
+  (function setupManualSubmission() {
+    const fab = document.getElementById('msFab');
+    const panel = document.getElementById('msPanel');
+    const form = document.getElementById('msForm');
+    const dealerSelect = document.getElementById('msDealer');
+    const postAsMg = document.getElementById('msPostAsMg');
+    const submitBtn = document.getElementById('msSubmit');
+    const statusEl = document.getElementById('msStatus');
+    if (!fab || !panel || !form) return;
+
+    function setStatus(msg, kind) {
+      statusEl.textContent = msg || '';
+      statusEl.classList.remove('ms-status--error', 'ms-status--success');
+      if (kind) statusEl.classList.add(`ms-status--${kind}`);
+    }
+
+    function isOpen() { return panel.classList.contains('ms-open'); }
+
+    function openPanel() {
+      panel.classList.add('ms-open');
+      fab.classList.add('ms-open');
+      fab.setAttribute('aria-expanded', 'true');
+      panel.setAttribute('aria-hidden', 'false');
+      document.getElementById('msPbo').focus();
+    }
+
+    function closePanel() {
+      panel.classList.remove('ms-open');
+      fab.classList.remove('ms-open');
+      fab.setAttribute('aria-expanded', 'false');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+
+    fab.addEventListener('click', () => { isOpen() ? closePanel() : openPanel(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) closePanel();
+    });
+
+    // "Post as MG Finance" disables and clears the dealer dropdown.
+    postAsMg.addEventListener('change', () => {
+      if (postAsMg.checked) { dealerSelect.value = ''; dealerSelect.disabled = true; }
+      else { dealerSelect.disabled = false; }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setStatus('');
+
+      const pbo = document.getElementById('msPbo').value.trim();
+      if (!pbo) { setStatus('PBO reference is required.', 'error'); return; }
+      if (!postAsMg.checked && !dealerSelect.value) {
+        setStatus('Select a dealer or tick "Post as MG Finance".', 'error');
+        return;
+      }
+
+      const data = new FormData();
+      data.append('pbo_reference', pbo);
+      if (postAsMg.checked) data.append('post_as_mg', 'true');
+      else data.append('dealer_name', dealerSelect.value);
+      const amount = document.getElementById('msAmount').value.trim();
+      if (amount) data.append('amount', amount);
+      const paymentType = document.getElementById('msPaymentType').value.trim();
+      if (paymentType) data.append('payment_type', paymentType);
+      const notes = document.getElementById('msNotes').value.trim();
+      if (notes) data.append('notes', notes);
+      const file = document.getElementById('msFile').files[0];
+      if (file) data.append('screenshot', file);
+
+      submitBtn.disabled = true;
+      setStatus('Submitting…');
+      try {
+        const res = await fetch('/api/admin/submissions', {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: data
+        });
+        if (!res.ok) {
+          let msg = 'Submission failed.';
+          try { const j = await res.json(); if (j && j.error) msg = j.error; } catch (_) {}
+          setStatus(msg, 'error');
+          return;
+        }
+        form.reset();
+        dealerSelect.disabled = false;
+        setStatus('');
+        closePanel();
+        showToast('Submission added.');
+        loadSubmissions();
+      } catch (err) {
+        setStatus('Network error — please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  })();
 
   // ---------- Kick things off ----------
   checkAuthAndInit();

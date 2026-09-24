@@ -328,6 +328,92 @@ app.get('/api/submissions/:id/audit', financeAuth, (req, res) => {
   res.json(rows);
 });
 
+// --- Finance-facing: manually create a submission from the dashboard ---
+// Mirrors the WhatsApp intake (dealer-whatsapp/index.js): extraction is best-effort
+// and never blocks the save. The dealer is decided server-side.
+app.post('/api/admin/submissions', financeAuth, upload.single('screenshot'), async (req, res) => {
+  try {
+    const { pbo_reference, dealer_name, post_as_mg, amount, payment_type, notes } = req.body;
+
+    if (!pbo_reference || !pbo_reference.trim()) {
+      if (req.file) fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ error: 'PBO reference is required.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'An attachment is required.' });
+    }
+
+    // Decide the dealer name server-side. "Post as MG Finance" uses a fixed label
+    // that is deliberately NOT a row in the dealers table; otherwise the dealer_name
+    // must exactly match a registered dealer.
+    const postAsMg = post_as_mg === 'true' || post_as_mg === true || post_as_mg === 'on' || post_as_mg === '1';
+    let dealerName;
+    if (postAsMg) {
+      dealerName = 'MG Finance';
+    } else {
+      const dealer = db.prepare('SELECT dealer_name FROM dealers WHERE dealer_name = ?').get((dealer_name || '').trim());
+      if (!dealer) {
+        if (req.file) fs.unlink(req.file.path, () => {});
+        return res.status(400).json({ error: 'Unknown dealer — select a registered dealer or post as MG Finance.' });
+      }
+      dealerName = dealer.dealer_name;
+    }
+
+    // Best-effort extraction: any failure (including a missing API key) falls back
+    // to needs_review and carries on, exactly like the WhatsApp intake.
+    const screenshotPath = path.join(uploadsDir, req.file.filename);
+    let extracted;
+    try {
+      extracted = await extractPaymentDetails(screenshotPath);
+    } catch (err) {
+      logger.error({ err: err.message }, 'Manual submission extraction failed');
+      extracted = {
+        status: 'unclear', sender_name: null, amount: null, transaction_date: null,
+        transaction_type: null, to_account_name: null, needs_review: true,
+        review_reason: 'Automatic extraction failed, please review manually'
+      };
+    }
+
+    // Operator-provided amount / payment type override the extracted values.
+    let finalAmount = extracted.amount || null;
+    if (amount !== undefined && amount !== null && String(amount).trim() !== '') {
+      const n = Number(amount);
+      if (!Number.isNaN(n)) finalAmount = n;
+    }
+    const finalPaymentType = (payment_type && payment_type.trim())
+      ? payment_type.trim()
+      : (extracted.transaction_type || 'Unspecified');
+
+    // Same columns as the WhatsApp intake; status defaults to 'Received'.
+    const result = db.prepare(`
+      INSERT INTO submissions (
+        dealer_name, pbo_reference, payment_type, amount, notes, screenshot_filename,
+        extracted_sender_name, extracted_amount, extracted_date, extracted_status,
+        extracted_transaction_type, extracted_to_account_name, needs_review, review_reason
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      dealerName, pbo_reference.trim(), finalPaymentType, finalAmount, (notes && notes.trim()) || null, req.file.filename,
+      extracted.sender_name || null, extracted.amount || null, extracted.transaction_date || null,
+      extracted.status || null, extracted.transaction_type || null, extracted.to_account_name || null,
+      extracted.needs_review ? 1 : 0, extracted.review_reason || null
+    );
+
+    // Audit: record the manual entry against the finance user who created it. No email.
+    db.prepare(`
+      INSERT INTO audit_log (submission_id, finance_user_id, username, action, old_status, new_status)
+      VALUES (?, ?, ?, 'Manual entry', NULL, ?)
+    `).run(result.lastInsertRowid, req.financeUser.id, req.financeUser.username, 'Received');
+
+    logger.info({ id: result.lastInsertRowid, dealer_name: dealerName, by: req.financeUser.username }, 'Manual submission created');
+    res.json({ success: true, id: result.lastInsertRowid });
+  } catch (err) {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    logger.error({ err }, 'Manual submission failed');
+    res.status(500).json({ error: 'Something went wrong.' });
+  }
+});
+
 // ============================================================
 // Admin: dealers, phone numbers, and finance users
 // ============================================================
@@ -568,15 +654,19 @@ app.post('/api/summary/export', financeAuth, (req, res) => {
       rows = rows.filter(r => dealers.includes(r.dealer_name));
     }
 
-    const allDealerRows = db.prepare('SELECT dealer_name FROM dealers ORDER BY dealer_name').all();
-    const dealersToInclude = dealers && dealers.length > 0
-      ? allDealerRows.filter(d => dealers.includes(d.dealer_name))
-      : allDealerRows;
+    const registeredNames = db.prepare('SELECT dealer_name FROM dealers ORDER BY dealer_name').all().map(d => d.dealer_name);
+    // Include any dealer_name that only exists in submissions (e.g. 'MG Finance',
+    // which is deliberately not a row in the dealers table).
+    const extraNames = [...new Set(rows.map(r => r.dealer_name))].filter(n => !registeredNames.includes(n)).sort();
+    let dealerNames = [...registeredNames, ...extraNames];
+    if (dealers && dealers.length > 0) {
+      dealerNames = dealerNames.filter(n => dealers.includes(n));
+    }
 
     let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
 
-    const summaryRows = dealersToInclude.map(d => {
-      const dealerRows = rows.filter(r => r.dealer_name === d.dealer_name);
+    const summaryRows = dealerNames.map(name => {
+      const dealerRows = rows.filter(r => r.dealer_name === name);
       const total = dealerRows.length;
       const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
       const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
@@ -588,7 +678,7 @@ app.post('/api/summary/export', financeAuth, (req, res) => {
       grandVerified += verified;
 
       return {
-        'Dealer': d.dealer_name,
+        'Dealer': name,
         'Received': total,
         'Posted in SAP': posted,
         'Rejected': rejected,
