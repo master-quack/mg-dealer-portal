@@ -443,6 +443,8 @@
   .stat-card--received::after { background: #d9951d; } .stat-card--posted::after { background: var(--success); } .stat-card--rejected::after { background: var(--danger); }
   .stat-card__label { display: block; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .045em; text-transform: uppercase; }
   .stat-card__value { display: block; margin-top: 11px; color: var(--navy); font-size: 30px; font-weight: 760; letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-card__amount { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .summary-amount { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
   .export-bar { min-height: 68px; padding: 12px 14px; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); background: rgba(255,255,255,.94); }
   .pbo-search-input { height: 38px; width: 240px; padding: 8px 12px 8px 35px; border-color: var(--line-strong); border-radius: 8px; color: var(--ink); background: var(--surface-muted) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23667085' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 12px center / 16px no-repeat; }
@@ -471,10 +473,10 @@
   #summaryTable thead th { position: sticky; top: 0; z-index: 5; }
   table { background: var(--surface); }
   th, td { padding: 8px 8px; border-bottom-color: var(--line); color: #344054; font-size: 11px; vertical-align: middle; overflow-wrap: break-word; }
-  #table td.cell-num, #table th.cell-num { text-align: right; font-variant-numeric: tabular-nums; }
+  #table td.cell-num { text-align: left; font-variant-numeric: tabular-nums; }
   #table td.cell-id { font-variant-numeric: tabular-nums; color: var(--subtle); }
   #table td.cell-timestamp { font-variant-numeric: tabular-nums; }
-  th { background: #f8fafc; color: #667085; font-size: 11px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; white-space: nowrap; }
+  th { background: #f8fafc; color: #667085; font-size: 11px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; white-space: normal; overflow-wrap: break-word; vertical-align: bottom; text-align: left; line-height: 1.25; }
   tbody tr { transition: background-color .15s ease, box-shadow .15s ease; }
   tbody tr:hover { background: #f8fbff; box-shadow: inset 3px 0 0 var(--blue); }
   tbody tr:last-child td { border-bottom: 0; }
@@ -807,11 +809,11 @@
         </div>
 
         <div class="stat-grid" aria-label="Submission status summary">
-          <div class="stat-card stat-card--received"><span class="stat-card__label">Received</span><strong class="stat-card__value" id="statReceived">0</strong></div>
-          <div class="stat-card stat-card--rejected"><span class="stat-card__label">Rejected</span><strong class="stat-card__value" id="statRejected">0</strong></div>
-          <div class="stat-card stat-card--posted"><span class="stat-card__label">Verified</span><strong class="stat-card__value" id="statVerified">0</strong></div>
-          <div class="stat-card stat-card--posted"><span class="stat-card__label">Posted in SAP</span><strong class="stat-card__value" id="statPosted">0</strong></div>
-          <div class="stat-card"><span class="stat-card__label">Total submissions</span><strong class="stat-card__value" id="statTotal">0</strong></div>
+          <div class="stat-card stat-card--received"><span class="stat-card__label">Received</span><strong class="stat-card__value" id="statReceived">0</strong><span class="stat-card__amount" id="statReceivedAmt">-</span></div>
+          <div class="stat-card stat-card--rejected"><span class="stat-card__label">Rejected</span><strong class="stat-card__value" id="statRejected">0</strong><span class="stat-card__amount" id="statRejectedAmt">-</span></div>
+          <div class="stat-card stat-card--posted"><span class="stat-card__label">Verified</span><strong class="stat-card__value" id="statVerified">0</strong><span class="stat-card__amount" id="statVerifiedAmt">-</span></div>
+          <div class="stat-card stat-card--posted"><span class="stat-card__label">Posted in SAP</span><strong class="stat-card__value" id="statPosted">0</strong><span class="stat-card__amount" id="statPostedAmt">-</span></div>
+          <div class="stat-card"><span class="stat-card__label">Total submissions</span><strong class="stat-card__value" id="statTotal">0</strong><span class="stat-card__amount" id="statTotalAmt">-</span></div>
         </div>
 
         <div class="export-bar">
@@ -884,11 +886,11 @@
           <tfoot>
             <tr class="total-row" id="summaryTotalRow">
               <td>Total</td>
-              <td id="totalReceived">0</td>
-              <td id="totalPosted">0</td>
-              <td id="totalRejected">0</td>
-              <td id="totalVerified">0</td>
-              <td id="totalAll">0</td>
+              <td><span id="totalReceived">0</span><span class="summary-amount" id="totalReceivedAmt">-</span></td>
+              <td><span id="totalPosted">0</span><span class="summary-amount" id="totalPostedAmt">-</span></td>
+              <td><span id="totalRejected">0</span><span class="summary-amount" id="totalRejectedAmt">-</span></td>
+              <td><span id="totalVerified">0</span><span class="summary-amount" id="totalVerifiedAmt">-</span></td>
+              <td><span id="totalAll">0</span><span class="summary-amount" id="totalAllAmt">-</span></td>
             </tr>
           </tfoot>
         </table>
@@ -957,7 +959,7 @@
         <table id="table">
           <thead>
             <tr>
-              <th>
+              <th style="width:3%;">
                 <label class="ui-checkbox">
                   <input type="checkbox" id="selectAll" class="ui-checkbox__input">
                   <span class="ui-checkbox__box">
@@ -967,14 +969,17 @@
                   </span>
                 </label>
               </th>
-              <th style="width:4%;">ID</th>
-              <th style="width:12%;">PBO / Dealer</th>
-              <th style="width:18%;" class="cell-num">Extracted Details</th>
-              <th style="width:9%;">Notes</th>
-              <th style="width:7%;">Screenshot</th>
-              <th style="width:12%;">Status</th>
-              <th style="width:9%;">Submitted</th>
-              <th style="width:18%;">Actions</th>
+              <th style="width:3%;">ID</th>
+              <th style="width:11%;">PBO / Dealer</th>
+              <th style="width:14%;" class="cell-num">Extracted Details</th>
+              <th style="width:6%;">Notes</th>
+              <th style="width:6%;">Screenshot</th>
+              <th style="width:9%;">Status</th>
+              <th style="width:9%;">WA Received</th>
+              <th style="width:8%;">Deposit Date</th>
+              <th style="width:5%;">Aging</th>
+              <th style="width:10%;">Bank Txn ID</th>
+              <th style="width:16%;">Actions</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -1205,6 +1210,14 @@
           <input class="ms-input" id="msPaymentType" name="payment_type" type="text" autocomplete="off">
         </div>
         <div class="ms-field">
+          <label class="ms-label" for="msBankTxn">Bank Transaction ID <span style="font-weight:400;">(optional)</span></label>
+          <input class="ms-input" id="msBankTxn" name="bank_transaction_id" type="text" autocomplete="off">
+        </div>
+        <div class="ms-field">
+          <label class="ms-label" for="msDepositDate">Deposit date <span style="font-weight:400;">(optional)</span></label>
+          <input class="ms-input" id="msDepositDate" name="deposit_date" type="date" autocomplete="off">
+        </div>
+        <div class="ms-field">
           <label class="ms-label" for="msFile">Attachment</label>
           <input class="ms-file" id="msFile" name="screenshot" type="file" accept=".png,.jpg,.jpeg,.pdf">
         </div>
@@ -1267,9 +1280,7 @@
         const data = await res.json();
         allRows = data;
         await loadDealers();
-        setSubSingleDate(toLocalDateString(new Date()));
-        setHomeSingleDate(homeSingleDate);
-        renderSummaryTable();
+        applyDefaultDates();
         setInterval(loadSubmissions, 5000);
       } else {
         showLogin();
@@ -1303,8 +1314,8 @@
       if (res.ok) {
         showDashboard();
         await loadDealers();
-        setSubSingleDate(toLocalDateString(new Date()));
         loadSubmissions();
+        applyDefaultDates();
         setInterval(loadSubmissions, 5000);
       } else {
         const err = await res.json();
@@ -1725,6 +1736,12 @@
 
       const amountValue = row.extracted_amount ? Number(row.extracted_amount).toLocaleString() : (row.amount ? Number(row.amount).toLocaleString() : 'N/A');
 
+      // Aging: whole days from deposit_date to the local (UTC+5) date the slip was received.
+      const aging = agingDaysClient(row.created_at, row.deposit_date);
+      const agingDisplay = (aging === null) ? '-' : aging;
+      const depositDisplay = row.deposit_date ? escapeHtml(row.deposit_date) : '-';
+      const bankTxnDisplay = row.bank_transaction_id ? escapeHtml(row.bank_transaction_id) : '-';
+
       tr.innerHTML = `
         <td>
           <label class="ui-checkbox">
@@ -1749,6 +1766,9 @@
         <td><a class="screenshot-link" href="/uploads/${row.screenshot_filename}" target="_blank">View</a></td>
         <td><span class="status-chip ${statusClass}">${statusLabel}</span></td>
         <td class="cell-timestamp">${row.created_at}</td>
+        <td>${depositDisplay}</td>
+        <td>${agingDisplay}</td>
+        <td>${bankTxnDisplay}</td>
         <td><div class="row-actions">${actionsHtml}</div></td>
       `;
       tbody.appendChild(tr);
@@ -1777,6 +1797,27 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // created_at is stored in UTC; finance works in UTC+5. Aging = whole days from the deposit
+  // date to the local (UTC+5) calendar date the slip was received. null if deposit_date is empty.
+  function agingDaysClient(createdAt, depositDate) {
+    if (!depositDate || !/^\d{4}-\d{2}-\d{2}$/.test(depositDate)) return null;
+    if (!createdAt) return null;
+    const received = new Date(String(createdAt).replace(' ', 'T') + 'Z');
+    if (isNaN(received.getTime())) return null;
+    received.setUTCHours(received.getUTCHours() + 5);
+    const localDate = received.toISOString().slice(0, 10);
+    const a = new Date(localDate + 'T00:00:00Z');
+    const b = new Date(depositDate + 'T00:00:00Z');
+    return Math.round((a - b) / 86400000);
+  }
+
+  // Format a PKR money total like "PKR 1,234,567"; zero shows '-' (mirrors fmt()/fmtGrand()).
+  function fmtMoney(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v) || v === 0) return '-';
+    return 'PKR ' + Math.round(v).toLocaleString('en-US');
   }
 
   // ---------- Change 3: Audit Trail modal ----------
@@ -1955,6 +1996,21 @@
     renderSummaryTable();
   }
 
+  // Single source of truth for the on-load default. Applies the "Today" preset to BOTH tabs
+  // through the exact same code path as the Today preset buttons, so the date inputs the
+  // exports read are actually populated on load (previously the login path filled only the
+  // submissions tab, leaving the home summary export with empty dates).
+  function applyDefaultDates() {
+    // Submissions tab — mirror the Today preset button click.
+    applyPreset('today', startDateEl, endDateEl, onDateChange);
+    subSingleDate = startDateEl.value;
+    document.getElementById('subDateNav').classList.remove('range-mode');
+    // Home tab — mirror the Today preset button click.
+    applyPreset('today', homeStartDateEl, homeEndDateEl, () => { updateHomeDateNavUI(); renderSummaryTable(); });
+    homeSingleDate = homeStartDateEl.value;
+    updateHomeDateNavUI();
+  }
+
   document.getElementById('homeDatePrev').addEventListener('click', () => {
     const d = new Date(homeSingleDate + 'T00:00:00');
     d.setDate(d.getDate() - 1);
@@ -2020,6 +2076,13 @@
 
     const tbody = document.getElementById('summaryTbody');
     let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
+    let grandReceivedAmt = 0, grandPostedAmt = 0, grandRejectedAmt = 0, grandVerifiedAmt = 0;
+
+    // Sum the amount column with Number(), skipping values that aren't numeric.
+    const sumAmount = arr => arr.reduce((s, r) => {
+      const n = Number(r.amount);
+      return Number.isFinite(n) ? s + n : s;
+    }, 0);
 
     // Registered dealers plus any dealer_name that only exists in submissions
     // (e.g. 'MG Finance', which is deliberately not in the dealers table).
@@ -2030,24 +2093,35 @@
 
     tbody.innerHTML = dealersToShow.map(dealerName => {
       const dealerRows = filtered.filter(row => row.dealer_name === dealerName);
+      const postedRows = dealerRows.filter(r => r.status === 'Posted in SAP');
+      const rejectedRows = dealerRows.filter(r => r.status === 'Rejected');
+      const verifiedRows = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success');
       const total = dealerRows.length;
-      const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
-      const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
-      const verified = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success').length;
+      const posted = postedRows.length;
+      const rejected = rejectedRows.length;
+      const verified = verifiedRows.length;
+      const receivedAmt = sumAmount(dealerRows);
+      const postedAmt = sumAmount(postedRows);
+      const rejectedAmt = sumAmount(rejectedRows);
+      const verifiedAmt = sumAmount(verifiedRows);
 
       grandReceived += total;
       grandPosted += posted;
       grandRejected += rejected;
       grandVerified += verified;
+      grandReceivedAmt += receivedAmt;
+      grandPostedAmt += postedAmt;
+      grandRejectedAmt += rejectedAmt;
+      grandVerifiedAmt += verifiedAmt;
       const fmt = n => n === 0 ? '-' : n;
       return `
         <tr>
           <td>${escapeHtml(dealerName)}</td>
-          <td class="count-received">${fmt(total)}</td>
-          <td class="count-posted">${fmt(posted)}</td>
-          <td class="count-rejected">${fmt(rejected)}</td>
-          <td class="count-posted">${fmt(verified)}</td>
-          <td>${fmt(total)}</td>
+          <td class="count-received">${fmt(total)}<span class="summary-amount">${fmtMoney(receivedAmt)}</span></td>
+          <td class="count-posted">${fmt(posted)}<span class="summary-amount">${fmtMoney(postedAmt)}</span></td>
+          <td class="count-rejected">${fmt(rejected)}<span class="summary-amount">${fmtMoney(rejectedAmt)}</span></td>
+          <td class="count-posted">${fmt(verified)}<span class="summary-amount">${fmtMoney(verifiedAmt)}</span></td>
+          <td>${fmt(total)}<span class="summary-amount">${fmtMoney(receivedAmt)}</span></td>
         </tr>
       `;
     }).join('');
@@ -2058,11 +2132,21 @@
     document.getElementById('totalRejected').textContent = fmtGrand(grandRejected);
     document.getElementById('totalVerified').textContent = fmtGrand(grandVerified);
     document.getElementById('totalAll').textContent = fmtGrand(grandReceived);
+    document.getElementById('totalReceivedAmt').textContent = fmtMoney(grandReceivedAmt);
+    document.getElementById('totalPostedAmt').textContent = fmtMoney(grandPostedAmt);
+    document.getElementById('totalRejectedAmt').textContent = fmtMoney(grandRejectedAmt);
+    document.getElementById('totalVerifiedAmt').textContent = fmtMoney(grandVerifiedAmt);
+    document.getElementById('totalAllAmt').textContent = fmtMoney(grandReceivedAmt);
     document.getElementById('statReceived').textContent = fmtGrand(grandReceived);
     document.getElementById('statPosted').textContent = fmtGrand(grandPosted);
     document.getElementById('statRejected').textContent = fmtGrand(grandRejected);
     document.getElementById('statVerified').textContent = fmtGrand(grandVerified);
     document.getElementById('statTotal').textContent = fmtGrand(grandReceived);
+    document.getElementById('statReceivedAmt').textContent = fmtMoney(grandReceivedAmt);
+    document.getElementById('statPostedAmt').textContent = fmtMoney(grandPostedAmt);
+    document.getElementById('statRejectedAmt').textContent = fmtMoney(grandRejectedAmt);
+    document.getElementById('statVerifiedAmt').textContent = fmtMoney(grandVerifiedAmt);
+    document.getElementById('statTotalAmt').textContent = fmtMoney(grandReceivedAmt);
   }
 
   // ================= ADMIN TAB (live, backed by /api/admin) =================
@@ -2360,6 +2444,10 @@
       if (amount) data.append('amount', amount);
       const paymentType = document.getElementById('msPaymentType').value.trim();
       if (paymentType) data.append('payment_type', paymentType);
+      const bankTxn = document.getElementById('msBankTxn').value.trim();
+      if (bankTxn) data.append('bank_transaction_id', bankTxn);
+      const depositDate = document.getElementById('msDepositDate').value.trim();
+      if (depositDate) data.append('deposit_date', depositDate);
       const notes = document.getElementById('msNotes').value.trim();
       if (notes) data.append('notes', notes);
       const file = document.getElementById('msFile').files[0];

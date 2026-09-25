@@ -328,12 +328,47 @@ app.get('/api/submissions/:id/audit', financeAuth, (req, res) => {
   res.json(rows);
 });
 
+// Duplicate guard: the bank transaction id (IBFT/reference number) plus the PBO reference
+// together identify one real payment. If an earlier, non-Rejected submission already has the
+// same pair, this new one is a duplicate. Empty/null ids never block (many rows have no id yet).
+// Returns the blocking submission row, or null.
+function findBlockingDuplicate(bankTransactionId, pboReference) {
+  const id = (bankTransactionId || '').trim();
+  const pbo = (pboReference || '').trim();
+  if (!id || !pbo) return null;
+  return db.prepare(`
+    SELECT id, dealer_name, status FROM submissions
+    WHERE bank_transaction_id = ? AND pbo_reference = ? AND status != 'Rejected'
+    ORDER BY id ASC LIMIT 1
+  `).get(id, pbo) || null;
+}
+
+// created_at is stored in UTC (datetime('now')). The finance team works in UTC+5, so aging is
+// measured from the local (UTC+5) calendar date of when WhatsApp received the slip.
+function localDateUtc5(utcDateTimeStr) {
+  if (!utcDateTimeStr) return null;
+  const d = new Date(String(utcDateTimeStr).replace(' ', 'T') + 'Z');
+  if (isNaN(d.getTime())) return null;
+  d.setUTCHours(d.getUTCHours() + 5);
+  return d.toISOString().slice(0, 10);
+}
+
+// Whole days between the deposit date and the local received date. null if no valid deposit_date.
+function agingDays(createdAt, depositDate) {
+  if (!depositDate || !/^\d{4}-\d{2}-\d{2}$/.test(depositDate)) return null;
+  const local = localDateUtc5(createdAt);
+  if (!local) return null;
+  const a = new Date(local + 'T00:00:00Z');
+  const b = new Date(depositDate + 'T00:00:00Z');
+  return Math.round((a - b) / 86400000);
+}
+
 // --- Finance-facing: manually create a submission from the dashboard ---
 // Mirrors the WhatsApp intake (dealer-whatsapp/index.js): extraction is best-effort
 // and never blocks the save. The dealer is decided server-side.
 app.post('/api/admin/submissions', financeAuth, upload.single('screenshot'), async (req, res) => {
   try {
-    const { pbo_reference, dealer_name, post_as_mg, amount, payment_type, notes } = req.body;
+    const { pbo_reference, dealer_name, post_as_mg, amount, payment_type, notes, bank_transaction_id, deposit_date } = req.body;
 
     if (!pbo_reference || !pbo_reference.trim()) {
       if (req.file) fs.unlink(req.file.path, () => {});
@@ -384,19 +419,44 @@ app.post('/api/admin/submissions', financeAuth, upload.single('screenshot'), asy
       ? payment_type.trim()
       : (extracted.transaction_type || 'Unspecified');
 
+    // Operator-typed bank transaction id / deposit date override the extracted values.
+    const finalBankTransactionId = (bank_transaction_id && bank_transaction_id.trim())
+      ? bank_transaction_id.trim()
+      : (extracted.bank_transaction_id || null);
+    // Only accept a deposit_date that looks like YYYY-MM-DD; otherwise store null.
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+    let finalDepositDate = null;
+    if (deposit_date && isoDate.test(deposit_date.trim())) {
+      finalDepositDate = deposit_date.trim();
+    } else if (extracted.deposit_date && isoDate.test(String(extracted.deposit_date).trim())) {
+      finalDepositDate = String(extracted.deposit_date).trim();
+    }
+
+    // Block duplicates once the final bank transaction id is known (same id + same PBO,
+    // not already Rejected). Delete the just-uploaded file so it doesn't orphan, then 409.
+    const blocker = findBlockingDuplicate(finalBankTransactionId, pbo_reference);
+    if (blocker) {
+      if (req.file) fs.unlink(req.file.path, () => {});
+      return res.status(409).json({
+        error: `Duplicate: bank transaction ID ${finalBankTransactionId} with PBO ${pbo_reference.trim()} was already submitted as #${blocker.id} (${blocker.dealer_name}, ${blocker.status}).`
+      });
+    }
+
     // Same columns as the WhatsApp intake; status defaults to 'Received'.
     const result = db.prepare(`
       INSERT INTO submissions (
         dealer_name, pbo_reference, payment_type, amount, notes, screenshot_filename,
         extracted_sender_name, extracted_amount, extracted_date, extracted_status,
-        extracted_transaction_type, extracted_to_account_name, needs_review, review_reason
+        extracted_transaction_type, extracted_to_account_name, needs_review, review_reason,
+        bank_transaction_id, deposit_date
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       dealerName, pbo_reference.trim(), finalPaymentType, finalAmount, (notes && notes.trim()) || null, req.file.filename,
       extracted.sender_name || null, extracted.amount || null, extracted.transaction_date || null,
       extracted.status || null, extracted.transaction_type || null, extracted.to_account_name || null,
-      extracted.needs_review ? 1 : 0, extracted.review_reason || null
+      extracted.needs_review ? 1 : 0, extracted.review_reason || null,
+      finalBankTransactionId, finalDepositDate
     );
 
     // Audit: record the manual entry against the finance user who created it. No email.
@@ -461,6 +521,11 @@ app.post('/api/admin/dealers', financeAuth, (req, res) => {
 app.delete('/api/admin/dealers/:id', financeAuth, (req, res) => {
   const dealer = db.prepare('SELECT * FROM dealers WHERE id = ?').get(req.params.id);
   if (!dealer) return res.status(404).json({ error: 'Dealer not found.' });
+  // MG Finance (SAP 12000099) is a protected system dealer used by the "Post as MG Finance"
+  // path; it must never be deleted.
+  if (dealer.sap_code === '12000099' || dealer.dealer_name === 'MG Finance') {
+    return res.status(400).json({ error: 'MG Finance is a protected dealer and cannot be deleted.' });
+  }
   db.transaction(() => {
     db.prepare('DELETE FROM dealer_phones WHERE dealer_id = ?').run(dealer.id);
     db.prepare('DELETE FROM dealers WHERE id = ?').run(dealer.id);
@@ -606,6 +671,9 @@ app.post('/api/submissions/export', financeAuth, (req, res) => {
       'ID': r.id,
       'Dealer': r.dealer_name,
       'PBO Reference': r.pbo_reference,
+      'Bank Transaction ID': r.bank_transaction_id || '',
+      'Deposit Date': r.deposit_date || '',
+      'Aging (days)': agingDays(r.created_at, r.deposit_date) ?? '',
       'Status': r.status,
       'Notes': r.notes || '',
       'Extracted Status': r.extracted_status || '',
@@ -664,36 +732,64 @@ app.post('/api/summary/export', financeAuth, (req, res) => {
     }
 
     let grandReceived = 0, grandPosted = 0, grandRejected = 0, grandVerified = 0;
+    let grandReceivedAmt = 0, grandPostedAmt = 0, grandRejectedAmt = 0, grandVerifiedAmt = 0;
+
+    // Sum the amount column, skipping values that aren't numeric.
+    const sumAmount = arr => arr.reduce((s, r) => {
+      const n = Number(r.amount);
+      return Number.isFinite(n) ? s + n : s;
+    }, 0);
 
     const summaryRows = dealerNames.map(name => {
       const dealerRows = rows.filter(r => r.dealer_name === name);
+      const postedRows = dealerRows.filter(r => r.status === 'Posted in SAP');
+      const rejectedRows = dealerRows.filter(r => r.status === 'Rejected');
+      const verifiedRows = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success');
       const total = dealerRows.length;
-      const posted = dealerRows.filter(r => r.status === 'Posted in SAP').length;
-      const rejected = dealerRows.filter(r => r.status === 'Rejected').length;
-      const verified = dealerRows.filter(r => !r.needs_review && String(r.extracted_status || '').toLowerCase() === 'success').length;
+      const posted = postedRows.length;
+      const rejected = rejectedRows.length;
+      const verified = verifiedRows.length;
+      const receivedAmt = sumAmount(dealerRows);
+      const postedAmt = sumAmount(postedRows);
+      const rejectedAmt = sumAmount(rejectedRows);
+      const verifiedAmt = sumAmount(verifiedRows);
 
       grandReceived += total;
       grandPosted += posted;
       grandRejected += rejected;
       grandVerified += verified;
+      grandReceivedAmt += receivedAmt;
+      grandPostedAmt += postedAmt;
+      grandRejectedAmt += rejectedAmt;
+      grandVerifiedAmt += verifiedAmt;
 
       return {
         'Dealer': name,
         'Received': total,
+        'Received Amount (PKR)': receivedAmt,
         'Posted in SAP': posted,
+        'Posted Amount (PKR)': postedAmt,
         'Rejected': rejected,
+        'Rejected Amount (PKR)': rejectedAmt,
         'Verified': verified,
-        'Total': total
+        'Verified Amount (PKR)': verifiedAmt,
+        'Total': total,
+        'Total Amount (PKR)': receivedAmt
       };
     });
 
     summaryRows.push({
       'Dealer': 'TOTAL',
       'Received': grandReceived,
+      'Received Amount (PKR)': grandReceivedAmt,
       'Posted in SAP': grandPosted,
+      'Posted Amount (PKR)': grandPostedAmt,
       'Rejected': grandRejected,
+      'Rejected Amount (PKR)': grandRejectedAmt,
       'Verified': grandVerified,
-      'Total': grandReceived
+      'Verified Amount (PKR)': grandVerifiedAmt,
+      'Total': grandReceived,
+      'Total Amount (PKR)': grandReceivedAmt
     });
 
     const worksheet = XLSX.utils.json_to_sheet(summaryRows);

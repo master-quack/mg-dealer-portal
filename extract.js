@@ -34,6 +34,8 @@ Extract the following fields and respond with ONLY valid JSON, no other text:
   "transaction_date": "date/time as shown, or null if not visible",
   "transaction_type": "e.g. IBFT, Raast, or null if not visible",
   "to_account_name": "name on the To Account, or null if not visible",
+  "bank_transaction_id": "the transaction/reference number printed on the slip, or null if not visible",
+  "deposit_date": "the transaction date as YYYY-MM-DD, or null if not visible",
   "confidence": "high | medium | low",
   "needs_review": true or false,
   "review_reason": "brief reason if needs_review is true, otherwise null"
@@ -104,6 +106,8 @@ Set needs_review to true if: the status is not clearly "Success", any critical f
       transaction_date: null,
       transaction_type: null,
       to_account_name: null,
+      bank_transaction_id: null,
+      deposit_date: null,
       confidence: 'low',
       needs_review: true,
       review_reason: 'Could not parse extraction result'
